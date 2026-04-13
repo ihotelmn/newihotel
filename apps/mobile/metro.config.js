@@ -6,19 +6,16 @@ const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// Watch all files in the monorepo
+// Enable symlink support (required for pnpm)
+config.resolver.unstable_enableSymlinks = true;
+
+// Watch monorepo root so shared packages trigger rebuilds
 config.watchFolders = [monorepoRoot];
 
-// Resolve modules from both the app and the monorepo root
+// Resolve node_modules from both app and monorepo root
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
 ];
-
-// Ensure only one copy of React / React Native is used across all packages
-config.resolver.extraNodeModules = {
-  react: path.resolve(projectRoot, 'node_modules/react'),
-  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
-};
 
 module.exports = config;
