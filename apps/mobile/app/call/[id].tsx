@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { PhoneOff, MicOff } from 'lucide-react-native';
+import { PhoneOff, MicOff, Calendar, Users, BedDouble, Banknote } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { fontWeights, spacing, radius, animation } from '@ihotel/config';
@@ -69,19 +69,19 @@ export default function CallScreen() {
           <BlurView intensity={30} tint="dark" style={styles.infoCard}>
             <Text style={styles.infoTitle}>Буудалд илгээгдсэн</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.infoEmoji}>📅</Text>
+              <Calendar size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
               <Text style={styles.infoText}>4-р сарын 20 — 22 (2 шөнө)</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoEmoji}>👥</Text>
+              <Users size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
               <Text style={styles.infoText}>2 том хүн</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoEmoji}>🛏</Text>
+              <BedDouble size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
               <Text style={styles.infoText}>Deluxe өрөө</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoEmoji}>💰</Text>
+              <Banknote size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
               <Text style={styles.infoText}>₮250,000 — ₮300,000</Text>
             </View>
           </BlurView>
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  infoEmoji: { fontSize: 16 },
   infoText: {
     fontSize: 14,
     color: '#FFFFFF',

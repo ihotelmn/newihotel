@@ -3,16 +3,37 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
-  Image,
+  Pressable,
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  withTiming,
+  withSequence,
+} from 'react-native-reanimated';
+import { Image } from 'expo-image';
+import {
+  ArrowLeft,
+  Heart,
+  MapPin,
+  Star,
+  ShieldCheck,
+  Lock,
+  Sparkles,
+  MessageCircle,
+  Phone,
+  CreditCard,
+} from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, Badge } from '@ihotel/ui';
+import { Badge, useHaptic } from '@ihotel/ui';
 import { fetchHotelById, fetchReviewsByHotel } from '@ihotel/api';
-import { colors, radius, fontWeights } from '@ihotel/config';
+import { colors, radius, fontWeights, spacing, easing, animation } from '@ihotel/config';
 import type { Hotel, Review } from '@ihotel/types';
 
 const AMENITY_LABELS: Record<string, string> = {
@@ -33,13 +54,21 @@ const AMENITY_LABELS: Record<string, string> = {
   breakfast: 'Өглөөний цай',
 };
 
+const BLURHASH = 'LKO2:N%2Tw=w]~RBVZRi};RTt7t5';
+
 export default function HotelDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const haptic = useHaptic();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
+
+  // entrance animations
+  const contentTranslateY = useSharedValue(20);
+  const contentOpacity = useSharedValue(0);
+  const heartScale = useSharedValue(1);
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +80,33 @@ export default function HotelDetailScreen() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && hotel) {
+      contentTranslateY.value = withDelay(100, withSpring(0, easing.out));
+      contentOpacity.value = withDelay(100, withTiming(1, { duration: animation.base }));
+    }
+  }, [loading, hotel]);
+
+  const contentStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: contentTranslateY.value }],
+    opacity: contentOpacity.value,
+  }));
+
+  const heartAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+  }));
+
+  const toggleLike = () => {
+    haptic.light();
+    if (!liked) {
+      heartScale.value = withSequence(
+        withSpring(1.3, { damping: 8, stiffness: 200 }),
+        withSpring(1, easing.out),
+      );
+    }
+    setLiked(!liked);
+  };
 
   if (loading) {
     return (
@@ -81,24 +137,34 @@ export default function HotelDetailScreen() {
         <View style={styles.gallery}>
           <Image
             source={{ uri: hotel.image_url }}
+            placeholder={{ blurhash: BLURHASH }}
             style={styles.galleryImage}
+            contentFit="cover"
+            transition={300}
           />
           {/* Overlay buttons */}
           <SafeAreaView style={styles.galleryOverlay}>
-            <TouchableOpacity
+            <Pressable
               style={styles.overlayBtn}
               onPress={() => router.back()}
+              hitSlop={8}
             >
-              <Text style={styles.overlayBtnText}>←</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              <ArrowLeft size={20} color="#FFFFFF" strokeWidth={2} />
+            </Pressable>
+            <Pressable
               style={styles.overlayBtn}
-              onPress={() => setLiked(!liked)}
+              onPress={toggleLike}
+              hitSlop={8}
             >
-              <Text style={styles.overlayBtnText}>
-                {liked ? '❤️' : '🤍'}
-              </Text>
-            </TouchableOpacity>
+              <Animated.View style={heartAnimStyle}>
+                <Heart
+                  size={20}
+                  color={liked ? '#E24B4A' : '#FFFFFF'}
+                  fill={liked ? '#E24B4A' : 'transparent'}
+                  strokeWidth={2}
+                />
+              </Animated.View>
+            </Pressable>
           </SafeAreaView>
           {/* Image counter */}
           <View style={styles.imageCounter}>
@@ -108,35 +174,49 @@ export default function HotelDetailScreen() {
           </View>
         </View>
 
-        <View style={styles.content}>
+        <Animated.View style={[styles.content, contentStyle]}>
           {/* Title + Verified */}
           <View style={styles.titleRow}>
             <Text style={styles.title}>{hotel.name}</Text>
-            <Badge label="✓ Баталгаат" variant="teal" />
+            <Badge label="Баталгаат" variant="teal" />
           </View>
-          <Text style={styles.subtitle}>
-            📍 {hotel.city} · ★{' '}
-            {hotel.avg_rating > 0
-              ? `${hotel.avg_rating} (${hotel.review_count})`
-              : 'Шинэ'}
-          </Text>
+          <View style={styles.subtitleRow}>
+            <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
+            <Text style={styles.subtitle}>
+              {hotel.city}
+            </Text>
+            <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={0} />
+            <Text style={styles.subtitle}>
+              {hotel.avg_rating > 0
+                ? `${hotel.avg_rating} (${hotel.review_count})`
+                : 'Шинэ'}
+            </Text>
+          </View>
 
           {/* Trust card */}
           <View style={styles.trustCard}>
-            <Text style={styles.trustLabel}>🛡 Баталгаажсан буудал</Text>
-            <Text style={styles.trustText}>
-              Бичиг баримт шалгагдсан, бодит үйл ажиллагаа баталгаажсан
-            </Text>
+            <View style={styles.trustIconWrap}>
+              <ShieldCheck size={18} color="#04342C" strokeWidth={2} />
+            </View>
+            <View style={styles.trustContent}>
+              <Text style={styles.trustLabel}>Баталгаажсан буудал</Text>
+              <Text style={styles.trustText}>
+                Бичиг баримт шалгагдсан, бодит үйл ажиллагаа баталгаажсан
+              </Text>
+            </View>
           </View>
 
           {/* Price lock card */}
           <View style={styles.priceLockCard}>
-            <Text style={styles.priceLockLabel}>
-              🔒 Үнэ lock — ₮{hotel.price_min.toLocaleString()} хадгалагдана
-            </Text>
-            <Text style={styles.priceLockText}>
-              Энэ үнэ 24 цагийн дотор хүчинтэй
-            </Text>
+            <Lock size={16} color={colors.primary} strokeWidth={2} />
+            <View style={styles.priceLockContent}>
+              <Text style={styles.priceLockLabel}>
+                Үнэ lock — ₮{hotel.price_min.toLocaleString()} хадгалагдана
+              </Text>
+              <Text style={styles.priceLockText}>
+                Энэ үнэ 24 цагийн дотор хүчинтэй
+              </Text>
+            </View>
           </View>
 
           {/* Amenities */}
@@ -152,7 +232,10 @@ export default function HotelDetailScreen() {
 
           {/* AI summary */}
           <View style={styles.aiCard}>
-            <Text style={styles.aiLabel}>✨ AI хураангуй</Text>
+            <View style={styles.aiLabelRow}>
+              <Sparkles size={12} color={colors.primary} strokeWidth={2} />
+              <Text style={styles.aiLabel}>AI хураангуй</Text>
+            </View>
             <Text style={styles.aiText}>
               Зочид цэвэр байдал, ажилчдын найрсаг хандлагыг өндрөөр
               үнэлдэг. Wi-Fi заримдаа сул.
@@ -170,12 +253,16 @@ export default function HotelDetailScreen() {
                 <Text style={styles.hostStatus}>Ихэвчлэн 5 мин-д хариулна</Text>
               </View>
             </View>
-            <TouchableOpacity
+            <Pressable
               style={styles.hostChatBtn}
-              onPress={() => router.push(`/chat/${id}`)}
+              onPress={() => {
+                haptic.light();
+                router.push(`/chat/${id}`);
+              }}
             >
-              <Text style={styles.hostChatBtnText}>💬 Чатлах</Text>
-            </TouchableOpacity>
+              <MessageCircle size={16} color={colors.textPrimary} strokeWidth={2} />
+              <Text style={styles.hostChatBtnText}>Чатлах</Text>
+            </Pressable>
           </View>
 
           {/* Reviews */}
@@ -189,30 +276,40 @@ export default function HotelDetailScreen() {
 
           {/* Bottom spacer for action bar */}
           <View style={styles.bottomSpacer} />
-        </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Bottom action bar */}
       <View style={styles.actionBar}>
-        <TouchableOpacity
+        <Pressable
           style={styles.actionPrimary}
-          onPress={() => router.push(`/call/${id}`)}
+          onPress={() => {
+            haptic.medium();
+            router.push(`/call/${id}`);
+          }}
         >
-          <Text style={styles.actionPrimaryText}>Залгах · cash</Text>
+          <View style={styles.actionRow}>
+            <Phone size={16} color="#FFFFFF" strokeWidth={2} />
+            <Text style={styles.actionPrimaryText}>Залгах · cash</Text>
+          </View>
           <Text style={styles.actionPrimaryPrice}>
             ₮{hotel.price_min.toLocaleString()}-
             {(hotel.price_max / 1000).toFixed(0)}K
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionSecondary}>
-          <Text style={styles.actionSecondaryText}>Онлайн · QPay</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable style={styles.actionSecondary}>
+          <CreditCard size={16} color={colors.textPrimary} strokeWidth={2} />
+          <Text style={styles.actionSecondaryText}>QPay</Text>
+        </Pressable>
+        <Pressable
           style={styles.actionChat}
-          onPress={() => router.push(`/chat/${id}`)}
+          onPress={() => {
+            haptic.light();
+            router.push(`/chat/${id}`);
+          }}
         >
-          <Text style={styles.actionChatText}>💬</Text>
-        </TouchableOpacity>
+          <MessageCircle size={20} color={colors.primary} strokeWidth={2} />
+        </Pressable>
       </View>
     </View>
   );
@@ -238,7 +335,7 @@ const styles = StyleSheet.create({
 
   // Gallery
   gallery: {
-    height: 280,
+    height: 300,
     position: 'relative',
     backgroundColor: '#E1F5EE',
   },
@@ -253,20 +350,16 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
   overlayBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  overlayBtnText: {
-    fontSize: 18,
-    color: '#FFFFFF',
   },
   imageCounter: {
     position: 'absolute',
@@ -284,13 +377,13 @@ const styles = StyleSheet.create({
 
   // Content
   content: {
-    padding: 16,
+    padding: spacing.lg,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
   title: {
     fontSize: 22,
@@ -298,26 +391,46 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     flex: 1,
   },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.lg - 2,
+  },
   subtitle: {
     fontSize: 13,
     color: colors.textSecondary,
-    marginBottom: 14,
+    marginRight: spacing.sm,
   },
 
   // Trust card
   trustCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
     backgroundColor: '#E1F5EE',
     borderWidth: 0.5,
     borderColor: '#5DCAA5',
-    borderRadius: 12,
-    padding: 13,
-    marginBottom: 10,
+    borderRadius: radius.md,
+    padding: spacing.md + 1,
+    marginBottom: spacing.md - 2,
+  },
+  trustIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(4,52,44,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trustContent: {
+    flex: 1,
   },
   trustLabel: {
     fontSize: 13,
     fontWeight: fontWeights.medium as '500',
     color: '#04342C',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   trustText: {
     fontSize: 12,
@@ -327,18 +440,24 @@ const styles = StyleSheet.create({
 
   // Price lock card
   priceLockCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
     backgroundColor: colors.card,
     borderWidth: 0.5,
     borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 12,
-    padding: 13,
-    marginBottom: 14,
+    borderRadius: radius.md,
+    padding: spacing.md + 1,
+    marginBottom: spacing.lg - 2,
+  },
+  priceLockContent: {
+    flex: 1,
   },
   priceLockLabel: {
     fontSize: 14,
     fontWeight: fontWeights.medium as '500',
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   priceLockText: {
     fontSize: 12,
@@ -350,7 +469,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 14,
+    marginBottom: spacing.lg - 2,
   },
   amenityPill: {
     backgroundColor: 'rgba(0,0,0,0.04)',
@@ -368,9 +487,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#E1F5EE',
     borderWidth: 0.5,
     borderColor: '#5DCAA5',
-    borderRadius: 12,
-    padding: 13,
-    marginBottom: 14,
+    borderRadius: radius.md,
+    padding: spacing.md + 1,
+    marginBottom: spacing.lg - 2,
+  },
+  aiLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm - 2,
   },
   aiLabel: {
     fontSize: 11,
@@ -378,7 +503,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 6,
   },
   aiText: {
     fontSize: 14,
@@ -391,15 +515,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 0.5,
     borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 18,
+    borderRadius: radius.md,
+    padding: spacing.lg - 2,
+    marginBottom: spacing.lg + 2,
   },
   hostRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    gap: spacing.md - 2,
+    marginBottom: spacing.md - 2,
   },
   hostAvatar: {
     width: 40,
@@ -427,10 +551,14 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   hostChatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
     backgroundColor: '#F1EFE8',
     borderRadius: radius.sm,
     paddingVertical: 10,
-    alignItems: 'center',
+    minHeight: 44,
   },
   hostChatBtnText: {
     fontSize: 14,
@@ -445,13 +573,13 @@ const styles = StyleSheet.create({
     color: '#888780',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   reviewCard: {
     backgroundColor: colors.card,
     borderRadius: 10,
-    padding: 13,
-    marginBottom: 8,
+    padding: spacing.md + 1,
+    marginBottom: spacing.sm,
   },
   reviewAuthor: {
     fontSize: 13,
@@ -471,19 +599,24 @@ const styles = StyleSheet.create({
   // Action bar
   actionBar: {
     flexDirection: 'row',
-    padding: 14,
+    padding: spacing.lg - 2,
     paddingBottom: 30,
     backgroundColor: colors.card,
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(0,0,0,0.08)',
-    gap: 8,
+    gap: spacing.sm,
   },
   actionPrimary: {
     flex: 1,
     backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   actionPrimaryText: {
     fontSize: 15,
@@ -500,12 +633,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 0.5,
     borderColor: 'rgba(0,0,0,0.15)',
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg - 2,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
   },
   actionSecondaryText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: fontWeights.medium as '500',
     color: colors.textPrimary,
   },
@@ -514,11 +649,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 0.5,
     borderColor: 'rgba(0,0,0,0.15)',
-    borderRadius: 12,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  actionChatText: {
-    fontSize: 20,
+    minHeight: 44,
   },
 });

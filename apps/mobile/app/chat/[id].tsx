@@ -465,8 +465,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   inputIcon: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -478,9 +478,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   sendBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
