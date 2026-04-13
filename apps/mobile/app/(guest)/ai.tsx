@@ -9,8 +9,11 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { Sparkles, Send, Hotel, Wallet, Users, Mountain } from 'lucide-react-native';
 
 type Message = {
   id: string;
@@ -19,32 +22,65 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-  { icon: '🏨', text: 'Тэрэлж орчмын хотелууд' },
-  { icon: '💰', text: 'Хямд зочид буудал хайх' },
-  { icon: '👨‍👩‍👧‍👦', text: 'Гэр бүлд тохиромжтой газар' },
-  { icon: '🌄', text: 'Байгалийн үзэсгэлэнт газрууд' },
+  { icon: Hotel, text: 'Тэрэлж орчмын хотелууд', color: '#0F6E56' },
+  { icon: Wallet, text: 'Хямд зочид буудал хайх', color: '#F59E0B' },
+  { icon: Users, text: 'Гэр бүлд тохиромжтой газар', color: '#4A90D9' },
+  { icon: Mountain, text: 'Байгалийн үзэсгэлэнт газрууд', color: '#8B5CF6' },
 ];
 
 const AI_REPLIES: Record<string, string> = {
   default:
-    'Би танд туслахад бэлэн! Та аялалын газар, хотел, үнэ гэх мэт асуулт асуугаарай.',
+    'Би танд туслахад бэлэн! Та аялалын газар, хотел, үнэ гэх мэт асуулт асуугаарай. Жишээ нь: "Тэрэлж орчимд хотел байна уу?" гэж асууж болно.',
   hotel:
-    'Тэрэлж орчимд хэд хэдэн гайхалтай хотел байна. "Тэрэлж Лодж" нь 180,000₮-оос эхэлдэг бөгөөд байгалийн үзэсгэлэнт газар байрладаг. Дэлгэрэнгүй үзэх үү?',
+    'Тэрэлж орчимд хэд хэдэн гайхалтай хотел байна:\n\n1. Тэрэлж Лодж — 180,000₮/шөнө, ★4.6\n2. Горхи Тэрэлж Рисорт — 350,000₮/шөнө, ★4.8\n\nДэлгэрэнгүй үзэх үү?',
   cheap:
-    'Хямд сонголтуудаас "Номад Гэстхаус" 55,000₮/шөнө, "Алтай Гэр Кэмп" 85,000₮/шөнө зэрэг байна. Аль нь таалагдаж байна?',
+    'Хямд сонголтуудаас:\n\n• Номад Гэстхаус — 55,000₮/шөнө\n• Алтай Гэр Кэмп — 85,000₮/шөнө\n• Говийн Гэр Кэмп — 95,000₮/шөнө\n\nАль нь таалагдаж байна?',
   family:
-    'Гэр бүлд "Хустайн Рисорт" маш тохиромжтой — өргөн өрөөтэй, хүүхдийн тоглоомын талбайтай, морь унах боломжтой. 320,000₮/шөнө.',
+    'Гэр бүлд "Хустайн Рисорт" маш тохиромжтой — өргөн өрөөтэй, хүүхдийн тоглоомын талбайтай, морь унах боломжтой. ★4.7 үнэлгээтэй, 320,000₮/шөнө.',
   nature:
-    'Хөвсгөл нуур, Тэрэлж, Горхи-Тэрэлж зэрэг газрууд байгалийн үзэсгэлэнтэй. Хөвсгөл Лодж ★4.9 үнэлгээтэй, 210,000₮/шөнө.',
+    'Байгалийн үзэсгэлэнт газрууд:\n\n🏔 Хөвсгөл Лодж — ★4.9, 210,000₮\n🌿 Тэрэлж Лодж — ★4.6, 180,000₮\n🐪 Говийн Гэр Кэмп — ★4.5, 95,000₮\n\nЯмар төрлийн байгаль таалагдах вэ?',
 };
 
 function getAIReply(text: string): string {
   const lower = text.toLowerCase();
   if (lower.includes('тэрэлж') || lower.includes('хотел')) return AI_REPLIES.hotel;
   if (lower.includes('хямд') || lower.includes('cheap')) return AI_REPLIES.cheap;
-  if (lower.includes('гэр бүл') || lower.includes('family') || lower.includes('тохиромжтой')) return AI_REPLIES.family;
+  if (lower.includes('гэр бүл') || lower.includes('family') || lower.includes('тохиромжтой'))
+    return AI_REPLIES.family;
   if (lower.includes('байгал') || lower.includes('үзэсгэлэнт')) return AI_REPLIES.nature;
   return AI_REPLIES.default;
+}
+
+function TypingIndicator() {
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animate = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0.3, duration: 300, useNativeDriver: true }),
+        ]),
+      );
+    const a1 = animate(dot1, 0);
+    const a2 = animate(dot2, 200);
+    const a3 = animate(dot3, 400);
+    a1.start();
+    a2.start();
+    a3.start();
+    return () => { a1.stop(); a2.stop(); a3.stop(); };
+  }, []);
+
+  return (
+    <View style={bs.typingRow}>
+      {[dot1, dot2, dot3].map((d, i) => (
+        <Animated.View key={i} style={[bs.typingDot, { opacity: d }]} />
+      ))}
+    </View>
+  );
 }
 
 export default function AIScreen() {
@@ -59,6 +95,7 @@ export default function AIScreen() {
   const sendMessage = useCallback(
     (text: string) => {
       if (!text.trim()) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const userMsg: Message = {
         id: Date.now().toString(),
         text: text.trim(),
@@ -94,15 +131,20 @@ export default function AIScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
+        {/* Header */}
         <View style={s.header}>
-          <Pressable onPress={() => router.back()} style={s.backBtn}>
-            <Text style={s.backText}>←</Text>
-          </Pressable>
-          <View style={s.headerCenter}>
-            <Text style={s.headerTitle}>AI Зөвлөх</Text>
-            <Text style={s.headerSub}>Онлайн</Text>
+          <View style={s.headerLeft}>
+            <View style={s.aiHeaderIcon}>
+              <Sparkles size={18} color="#0F6E56" strokeWidth={2} />
+            </View>
+            <View>
+              <Text style={s.headerTitle}>AI Зөвлөх</Text>
+              <View style={s.onlineRow}>
+                <View style={s.onlineDot} />
+                <Text style={s.headerSub}>Онлайн</Text>
+              </View>
+            </View>
           </View>
-          <View style={s.headerRight} />
         </View>
 
         <ScrollView
@@ -110,27 +152,33 @@ export default function AIScreen() {
           style={s.flex}
           contentContainerStyle={s.messagesContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {showWelcome && (
             <View style={s.welcome}>
               <View style={s.aiAvatar}>
-                <Text style={s.aiAvatarText}>✨</Text>
+                <Sparkles size={28} color="#0F6E56" strokeWidth={2} />
               </View>
-              <Text style={s.welcomeTitle}>Сайн байна уу!</Text>
+              <Text style={s.welcomeTitle}>{'Сайн байна уу! ✨'}</Text>
               <Text style={s.welcomeSub}>
                 Би таны аялалын AI зөвлөх. Юу асуухыг хүсч байна?
               </Text>
               <View style={s.sugGrid}>
-                {SUGGESTIONS.map((sug, i) => (
-                  <Pressable
-                    key={i}
-                    style={s.sugCard}
-                    onPress={() => sendMessage(sug.text)}
-                  >
-                    <Text style={s.sugIcon}>{sug.icon}</Text>
-                    <Text style={s.sugText}>{sug.text}</Text>
-                  </Pressable>
-                ))}
+                {SUGGESTIONS.map((sug, i) => {
+                  const Icon = sug.icon;
+                  return (
+                    <Pressable
+                      key={i}
+                      style={({ pressed }) => [s.sugCard, pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}
+                      onPress={() => sendMessage(sug.text)}
+                    >
+                      <View style={[s.sugIconWrap, { backgroundColor: sug.color + '14' }]}>
+                        <Icon size={20} color={sug.color} strokeWidth={1.8} />
+                      </View>
+                      <Text style={s.sugText}>{sug.text}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -138,29 +186,44 @@ export default function AIScreen() {
           {messages.map((msg) => (
             <View
               key={msg.id}
-              style={[
-                s.bubble,
-                msg.from === 'user' ? s.bubbleUser : s.bubbleAI,
-              ]}
+              style={[bs.wrap, msg.from === 'user' ? bs.userWrap : bs.aiWrap]}
             >
-              <Text
+              {msg.from === 'ai' && (
+                <View style={bs.aiMiniAvatar}>
+                  <Sparkles size={12} color="#0F6E56" strokeWidth={2} />
+                </View>
+              )}
+              <View
                 style={[
-                  s.bubbleText,
-                  msg.from === 'user' ? s.bubbleTextUser : s.bubbleTextAI,
+                  bs.bubble,
+                  msg.from === 'user' ? bs.bubbleUser : bs.bubbleAI,
                 ]}
               >
-                {msg.text}
-              </Text>
+                <Text
+                  style={[
+                    bs.bubbleText,
+                    msg.from === 'user' ? bs.textUser : bs.textAI,
+                  ]}
+                >
+                  {msg.text}
+                </Text>
+              </View>
             </View>
           ))}
 
           {typing && (
-            <View style={[s.bubble, s.bubbleAI]}>
-              <Text style={s.typingDots}>...</Text>
+            <View style={[bs.wrap, bs.aiWrap]}>
+              <View style={bs.aiMiniAvatar}>
+                <Sparkles size={12} color="#0F6E56" strokeWidth={2} />
+              </View>
+              <View style={[bs.bubble, bs.bubbleAI]}>
+                <TypingIndicator />
+              </View>
             </View>
           )}
         </ScrollView>
 
+        {/* Input Bar */}
         <View style={s.inputBar}>
           <TextInput
             style={s.textInput}
@@ -175,7 +238,7 @@ export default function AIScreen() {
             onPress={() => sendMessage(input)}
             disabled={!input.trim()}
           >
-            <Text style={s.sendText}>➤</Text>
+            <Send size={18} color="#FFF" strokeWidth={2} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -183,98 +246,140 @@ export default function AIScreen() {
   );
 }
 
+const bs = StyleSheet.create({
+  wrap: { paddingHorizontal: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  aiWrap: { justifyContent: 'flex-start' },
+  userWrap: { justifyContent: 'flex-end' },
+  aiMiniAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  bubble: {
+    maxWidth: '78%',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  bubbleUser: {
+    backgroundColor: '#1A1A1A',
+    borderBottomRightRadius: 6,
+  },
+  bubbleAI: {
+    backgroundColor: '#E3F0FF',
+    borderBottomLeftRadius: 6,
+  },
+  bubbleText: { fontSize: 15, lineHeight: 22 },
+  textUser: { color: '#FFF' },
+  textAI: { color: '#1A1A1A' },
+  typingRow: { flexDirection: 'row', gap: 4, paddingVertical: 4, paddingHorizontal: 2 },
+  typingDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#666' },
+});
+
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EDEDED',
   },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F3F3', alignItems: 'center', justifyContent: 'center' },
-  backText: { fontSize: 18, color: '#1A1A1A' },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
-  headerSub: { fontSize: 11, color: '#0F6E56', marginTop: 1 },
-  headerRight: { width: 36 },
-  messagesContent: { padding: 16, paddingBottom: 8 },
-  welcome: { alignItems: 'center', paddingTop: 30 },
-  aiAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  aiHeaderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     backgroundColor: '#E8F5E9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
   },
-  aiAvatarText: { fontSize: 28 },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' },
+  headerSub: { fontSize: 11, color: '#22C55E', fontWeight: '500' },
+  messagesContent: { padding: 16, paddingBottom: 8 },
+  welcome: { alignItems: 'center', paddingTop: 40 },
+  aiAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
   welcomeTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', marginBottom: 6 },
-  welcomeSub: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 24, paddingHorizontal: 20 },
-  sugGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 4 },
+  welcomeSub: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 28, paddingHorizontal: 20, lineHeight: 21 },
+  sugGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 4, width: '100%' },
   sugCard: {
     width: '47%' as any,
     backgroundColor: '#FFF',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#EDEDED',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  sugIcon: { fontSize: 24, marginBottom: 8 },
-  sugText: { fontSize: 13, fontWeight: '500', color: '#1A1A1A' },
-  bubble: {
-    maxWidth: '80%',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 8,
+  sugIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
-  bubbleUser: {
-    backgroundColor: '#1A1A1A',
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
-  },
-  bubbleAI: {
-    backgroundColor: '#E3F0FF',
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
-  },
-  bubbleText: { fontSize: 15, lineHeight: 21 },
-  bubbleTextUser: { color: '#FFF' },
-  bubbleTextAI: { color: '#1A1A1A' },
-  typingDots: { fontSize: 22, color: '#666', letterSpacing: 4 },
+  sugText: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', lineHeight: 18 },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingBottom: 28,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#EDEDED',
+    gap: 8,
   },
   textInput: {
     flex: 1,
     backgroundColor: '#F3F3F3',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     fontSize: 15,
     maxHeight: 100,
     color: '#1A1A1A',
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#0F6E56',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  sendBtnDisabled: { opacity: 0.4 },
-  sendText: { fontSize: 18, color: '#FFF' },
+  sendBtnDisabled: { opacity: 0.35 },
 });

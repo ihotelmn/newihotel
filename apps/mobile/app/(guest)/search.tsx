@@ -10,6 +10,9 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Image as ExpoImage } from 'expo-image';
+import * as Haptics from 'expo-haptics';
+import { Search, X, Star, Sparkles, Map, Heart, User } from 'lucide-react-native';
 
 const CATEGORIES = [
   { id: 'all', label: 'Бүгд' },
@@ -21,42 +24,58 @@ const CATEGORIES = [
 ];
 
 const HOTELS = [
-  { id: '1', name: 'Шангри-Ла Улаанбаатар', city: 'Улаанбаатар', price: 450000, rating: 4.8, reviews: 342, cat: 'city', color: '#E8D5B7' },
-  { id: '2', name: 'Тэрэлж Лодж', city: 'Тэрэлж', price: 180000, rating: 4.6, reviews: 128, cat: 'nature', color: '#C5D9C3' },
-  { id: '3', name: 'Говийн Гэр Кэмп', city: 'Өмнөговь', price: 95000, rating: 4.5, reviews: 87, cat: 'ger', color: '#D4C4A8' },
-  { id: '4', name: 'Хустайн Рисорт', city: 'Хустай', price: 320000, rating: 4.7, reviews: 215, cat: 'resort', color: '#B8D4E3' },
-  { id: '5', name: 'Номад Гэстхаус', city: 'Улаанбаатар', price: 55000, rating: 4.3, reviews: 64, cat: 'budget', color: '#E3D4B8' },
-  { id: '6', name: 'Блү Скай Хотел', city: 'Улаанбаатар', price: 380000, rating: 4.7, reviews: 298, cat: 'city', color: '#B8C4E3' },
-  { id: '7', name: 'Хөвсгөл Лодж', city: 'Хөвсгөл', price: 210000, rating: 4.9, reviews: 176, cat: 'nature', color: '#C3D9D5' },
-  { id: '8', name: 'Алтай Гэр Кэмп', city: 'Баян-Өлгий', price: 85000, rating: 4.4, reviews: 53, cat: 'ger', color: '#D9D4C3' },
-  { id: '9', name: 'Чингис Хаан Хотел', city: 'Улаанбаатар', price: 290000, rating: 4.6, reviews: 410, cat: 'city', color: '#E3C4B8' },
-  { id: '10', name: 'Горхи Тэрэлж Рисорт', city: 'Тэрэлж', price: 350000, rating: 4.8, reviews: 192, cat: 'resort', color: '#C3E3D4' },
+  { id: '1', name: 'Шангри-Ла Улаанбаатар', city: 'Улаанбаатар', price: 450000, rating: 4.8, reviews: 342, cat: 'city', image: 'https://picsum.photos/seed/hotel1/400/300' },
+  { id: '2', name: 'Тэрэлж Лодж', city: 'Тэрэлж', price: 180000, rating: 4.6, reviews: 128, cat: 'nature', image: 'https://picsum.photos/seed/hotel2/400/300' },
+  { id: '3', name: 'Говийн Гэр Кэмп', city: 'Өмнөговь', price: 95000, rating: 4.5, reviews: 87, cat: 'ger', image: 'https://picsum.photos/seed/hotel3/400/300' },
+  { id: '4', name: 'Хустайн Рисорт', city: 'Хустай', price: 320000, rating: 4.7, reviews: 215, cat: 'resort', image: 'https://picsum.photos/seed/hotel4/400/300' },
+  { id: '5', name: 'Номад Гэстхаус', city: 'Улаанбаатар', price: 55000, rating: 4.3, reviews: 64, cat: 'budget', image: 'https://picsum.photos/seed/hotel5/400/300' },
+  { id: '6', name: 'Блү Скай Хотел', city: 'Улаанбаатар', price: 380000, rating: 4.7, reviews: 298, cat: 'city', image: 'https://picsum.photos/seed/hotel6/400/300' },
+  { id: '7', name: 'Хөвсгөл Лодж', city: 'Хөвсгөл', price: 210000, rating: 4.9, reviews: 176, cat: 'nature', image: 'https://picsum.photos/seed/hotel7/400/300' },
+  { id: '8', name: 'Алтай Гэр Кэмп', city: 'Баян-Өлгий', price: 85000, rating: 4.4, reviews: 53, cat: 'ger', image: 'https://picsum.photos/seed/hotel8/400/300' },
+  { id: '9', name: 'Чингис Хаан Хотел', city: 'Улаанбаатар', price: 290000, rating: 4.6, reviews: 410, cat: 'city', image: 'https://picsum.photos/seed/hotel9/400/300' },
+  { id: '10', name: 'Горхи Тэрэлж Рисорт', city: 'Тэрэлж', price: 350000, rating: 4.8, reviews: 192, cat: 'resort', image: 'https://picsum.photos/seed/hotel10/400/300' },
 ];
+
+const BLURHASH = 'LKO2:N%2Tw=w]~RBVZRi};RTt7t5';
+
+const TAB_ICONS: Record<string, typeof Search> = {
+  search: Search,
+  ai: Sparkles,
+  trips: Map,
+  saved: Heart,
+  profile: User,
+};
 
 function TabBar({ active }: { active: string }) {
   const router = useRouter();
   const tabs = [
-    { key: 'search', label: '🔍 Хайх', route: '/(guest)/search' as const },
-    { key: 'ai', label: '✨ AI', route: '/(guest)/ai' as const },
-    { key: 'trips', label: '🧳 Аялал', route: '/(guest)/trips' as const },
-    { key: 'saved', label: '❤️ Хадгал', route: '/(guest)/saved' as const },
-    { key: 'profile', label: '👤 Профайл', route: '/(guest)/profile' as const },
+    { key: 'search', label: 'Хайх', route: '/(guest)/search' },
+    { key: 'ai', label: 'AI', route: '/(guest)/ai' },
+    { key: 'trips', label: 'Аялал', route: '/(guest)/trips' },
+    { key: 'saved', label: 'Хадгал', route: '/(guest)/saved' },
+    { key: 'profile', label: 'Профайл', route: '/(guest)/profile' },
   ];
   return (
-    <View style={tabStyles.bar}>
-      {tabs.map((t) => (
-        <Pressable
-          key={t.key}
-          style={tabStyles.tab}
-          onPress={() => {
-            if (t.key !== active) router.replace(t.route);
-          }}
-        >
-          <Text style={[tabStyles.label, t.key === active && tabStyles.active]}>
-            {t.label}
-          </Text>
-        </Pressable>
-      ))}
+    <View style={tabS.bar}>
+      {tabs.map((t) => {
+        const Icon = TAB_ICONS[t.key] ?? Search;
+        const isActive = t.key === active;
+        return (
+          <Pressable
+            key={t.key}
+            style={tabS.tab}
+            onPress={() => {
+              if (!isActive) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.replace(t.route as any);
+              }
+            }}
+          >
+            <Icon size={22} color={isActive ? '#0F6E56' : '#999'} strokeWidth={isActive ? 2.2 : 1.8} />
+            <Text style={[tabS.label, isActive && tabS.active]}>{t.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -75,28 +94,38 @@ export default function SearchScreen() {
     return matchCat && matchSearch;
   });
 
+  const handleCategoryPress = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCategory(id);
+  };
+
   const renderHotel = useCallback(
     ({ item }: { item: (typeof HOTELS)[0] }) => (
       <Pressable
-        style={s.card}
+        style={({ pressed }) => [s.card, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}
         onPress={() => router.push(`/hotel/${item.id}`)}
       >
-        <View style={[s.cardImage, { backgroundColor: item.color }]}>
-          <Text style={s.cardImageText}>{item.name.charAt(0)}</Text>
-        </View>
+        <ExpoImage
+          source={{ uri: item.image }}
+          placeholder={{ blurhash: BLURHASH }}
+          style={s.cardImage}
+          contentFit="cover"
+          transition={200}
+        />
         <View style={s.cardBody}>
-          <Text style={s.cardName} numberOfLines={1}>
-            {item.name}
-          </Text>
+          <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
           <Text style={s.cardCity}>{item.city}</Text>
           <View style={s.cardRow}>
-            <Text style={s.cardRating}>★ {item.rating}</Text>
-            <Text style={s.cardReviews}>({item.reviews})</Text>
+            <View style={s.ratingRow}>
+              <Star size={13} color="#F59E0B" fill="#F59E0B" strokeWidth={0} />
+              <Text style={s.cardRating}>{item.rating}</Text>
+              <Text style={s.cardReviews}>({item.reviews})</Text>
+            </View>
+            <Text style={s.cardPrice}>
+              {'₮' + item.price.toLocaleString()}
+              <Text style={s.cardNight}> /шөнө</Text>
+            </Text>
           </View>
-          <Text style={s.cardPrice}>
-            ₮{item.price.toLocaleString()}
-            <Text style={s.cardNight}> /шөнө</Text>
-          </Text>
         </View>
       </Pressable>
     ),
@@ -106,12 +135,12 @@ export default function SearchScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.greeting}>Сайн байна уу! 👋</Text>
+        <Text style={s.greeting}>{'Сайн байна уу! \u{1F44B}'}</Text>
         <Text style={s.title}>Хаашаа аялах вэ?</Text>
       </View>
 
       <View style={s.searchBox}>
-        <Text style={s.searchIcon}>🔍</Text>
+        <Search size={18} color="#999" strokeWidth={2} />
         <TextInput
           style={s.searchInput}
           placeholder="Хотел, газар хайх..."
@@ -119,19 +148,22 @@ export default function SearchScreen() {
           value={search}
           onChangeText={setSearch}
         />
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch('')} hitSlop={8}>
+            <X size={18} color="#999" strokeWidth={2} />
+          </Pressable>
+        )}
       </View>
 
       <View style={s.catRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catScroll}>
           {CATEGORIES.map((c) => (
             <Pressable
               key={c.id}
               style={[s.catPill, category === c.id && s.catPillActive]}
-              onPress={() => setCategory(c.id)}
+              onPress={() => handleCategoryPress(c.id)}
             >
-              <Text
-                style={[s.catText, category === c.id && s.catTextActive]}
-              >
+              <Text style={[s.catText, category === c.id && s.catTextActive]}>
                 {c.label}
               </Text>
             </Pressable>
@@ -147,7 +179,9 @@ export default function SearchScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={s.empty}>
+            <Text style={s.emptyIcon}>{'🔍'}</Text>
             <Text style={s.emptyText}>Илэрц олдсонгүй</Text>
+            <Text style={s.emptySub}>Өөр түлхүүр үгээр хайна уу</Text>
           </View>
         }
       />
@@ -159,69 +193,80 @@ export default function SearchScreen() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
-  header: { paddingHorizontal: 20, paddingTop: 12 },
+  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
   greeting: { fontSize: 14, color: '#888', marginBottom: 2 },
-  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 12 },
+  title: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', marginBottom: 14, letterSpacing: -0.3 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
     marginHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    height: 48,
-    marginBottom: 12,
+    height: 50,
+    marginBottom: 14,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  searchIcon: { fontSize: 16, marginRight: 8 },
   searchInput: { flex: 1, fontSize: 15, color: '#1A1A1A' },
-  catRow: { paddingLeft: 20, marginBottom: 8 },
+  catRow: { marginBottom: 10 },
+  catScroll: { paddingHorizontal: 20, gap: 8 },
   catPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 24,
     backgroundColor: '#FFF',
-    marginRight: 8,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#EDEDED',
   },
   catPillActive: { backgroundColor: '#0F6E56', borderColor: '#0F6E56' },
-  catText: { fontSize: 13, color: '#555' },
+  catText: { fontSize: 13, fontWeight: '500', color: '#555' },
   catTextActive: { color: '#FFF', fontWeight: '600' },
   list: { paddingHorizontal: 20, paddingBottom: 16 },
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    marginBottom: 14,
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   cardImage: {
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: 170,
+    width: '100%',
   },
-  cardImageText: { fontSize: 48, fontWeight: '700', color: 'rgba(0,0,0,0.15)' },
   cardBody: { padding: 14 },
-  cardName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
-  cardCity: { fontSize: 13, color: '#888', marginBottom: 6 },
-  cardRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  cardName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 3 },
+  cardCity: { fontSize: 13, color: '#888', marginBottom: 8 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cardRating: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
-  cardReviews: { fontSize: 12, color: '#999', marginLeft: 4 },
+  cardReviews: { fontSize: 12, color: '#999' },
   cardPrice: { fontSize: 17, fontWeight: '700', color: '#0F6E56' },
-  cardNight: { fontSize: 13, fontWeight: '400', color: '#888' },
-  empty: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { fontSize: 15, color: '#999' },
+  cardNight: { fontSize: 12, fontWeight: '400', color: '#888' },
+  empty: { alignItems: 'center', paddingTop: 80 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyText: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 4 },
+  emptySub: { fontSize: 14, color: '#888' },
 });
 
-const tabStyles = StyleSheet.create({
+const tabS = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#EDEDED',
-    paddingBottom: 20,
-    paddingTop: 8,
+    paddingBottom: 28,
+    paddingTop: 10,
   },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-  label: { fontSize: 11, color: '#999' },
+  tab: { flex: 1, alignItems: 'center', gap: 3 },
+  label: { fontSize: 10, color: '#999', fontWeight: '500' },
   active: { color: '#0F6E56', fontWeight: '600' },
 });

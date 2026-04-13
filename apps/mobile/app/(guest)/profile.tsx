@@ -9,47 +9,82 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import {
+  Search,
+  Sparkles,
+  Map,
+  Heart,
+  User,
+  CalendarCheck,
+  CreditCard,
+  Gift,
+  Settings,
+  UserCircle,
+  Bell,
+  Globe,
+  ShieldCheck,
+  HelpCircle,
+  FileText,
+  ChevronRight,
+  LogOut,
+} from 'lucide-react-native';
 
 const QUICK_ACTIONS = [
-  { icon: '🏨', label: 'Захиалга' },
-  { icon: '💳', label: 'Төлбөр' },
-  { icon: '🎁', label: 'Урамшуулал' },
-  { icon: '⚙️', label: 'Тохиргоо' },
+  { icon: CalendarCheck, label: 'Захиалга', color: '#0F6E56' },
+  { icon: CreditCard, label: 'Төлбөр', color: '#4A90D9' },
+  { icon: Gift, label: 'Урамшуулал', color: '#F59E0B' },
+  { icon: Settings, label: 'Тохиргоо', color: '#888' },
 ];
 
 const MENU_ITEMS = [
-  { icon: '📋', label: 'Миний мэдээлэл', sub: 'Нэр, утас, и-мэйл' },
-  { icon: '🔔', label: 'Мэдэгдэл', sub: 'Push notification тохиргоо' },
-  { icon: '🌐', label: 'Хэл', sub: 'Монгол' },
-  { icon: '🛡️', label: 'Нууцлал', sub: 'Нууц үг, баталгаажуулалт' },
-  { icon: '📞', label: 'Тусламж', sub: 'Холбоо барих, FAQ' },
-  { icon: '📄', label: 'Үйлчилгээний нөхцөл', sub: '' },
+  { icon: UserCircle, label: 'Миний мэдээлэл', sub: 'Нэр, утас, и-мэйл' },
+  { icon: Bell, label: 'Мэдэгдэл', sub: 'Push notification тохиргоо' },
+  { icon: Globe, label: 'Хэл', sub: 'Монгол' },
+  { icon: ShieldCheck, label: 'Нууцлал', sub: 'Нууц үг, баталгаажуулалт' },
+  { icon: HelpCircle, label: 'Тусламж', sub: 'Холбоо барих, FAQ' },
+  { icon: FileText, label: 'Үйлчилгээний нөхцөл', sub: '' },
 ];
+
+const TAB_ICONS: Record<string, typeof Search> = {
+  search: Search,
+  ai: Sparkles,
+  trips: Map,
+  saved: Heart,
+  profile: User,
+};
 
 function TabBar({ active }: { active: string }) {
   const router = useRouter();
   const tabs = [
-    { key: 'search', label: '🔍 Хайх', route: '/(guest)/search' as const },
-    { key: 'ai', label: '✨ AI', route: '/(guest)/ai' as const },
-    { key: 'trips', label: '🧳 Аялал', route: '/(guest)/trips' as const },
-    { key: 'saved', label: '❤️ Хадгал', route: '/(guest)/saved' as const },
-    { key: 'profile', label: '👤 Профайл', route: '/(guest)/profile' as const },
+    { key: 'search', label: 'Хайх', route: '/(guest)/search' },
+    { key: 'ai', label: 'AI', route: '/(guest)/ai' },
+    { key: 'trips', label: 'Аялал', route: '/(guest)/trips' },
+    { key: 'saved', label: 'Хадгал', route: '/(guest)/saved' },
+    { key: 'profile', label: 'Профайл', route: '/(guest)/profile' },
   ];
   return (
-    <View style={tabStyles.bar}>
-      {tabs.map((t) => (
-        <Pressable
-          key={t.key}
-          style={tabStyles.tab}
-          onPress={() => {
-            if (t.key !== active) router.replace(t.route);
-          }}
-        >
-          <Text style={[tabStyles.label, t.key === active && tabStyles.active]}>
-            {t.label}
-          </Text>
-        </Pressable>
-      ))}
+    <View style={tabS.bar}>
+      {tabs.map((t) => {
+        const Icon = TAB_ICONS[t.key] ?? Search;
+        const isActive = t.key === active;
+        return (
+          <Pressable
+            key={t.key}
+            style={tabS.tab}
+            onPress={() => {
+              if (!isActive) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.replace(t.route as any);
+              }
+            }}
+          >
+            <Icon size={22} color={isActive ? '#0F6E56' : '#999'} strokeWidth={isActive ? 2.2 : 1.8} />
+            <Text style={[tabS.label, isActive && tabS.active]}>{t.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -62,6 +97,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <Text style={s.headerTitle}>Профайл</Text>
 
+        {/* Avatar */}
         <View style={s.avatarSection}>
           <View style={s.avatar}>
             <Text style={s.avatarText}>БЭ</Text>
@@ -70,57 +106,83 @@ export default function ProfileScreen() {
           <Text style={s.email}>bat.erdene@email.mn</Text>
         </View>
 
-        <View style={s.loyaltyCard}>
+        {/* Loyalty Card */}
+        <LinearGradient
+          colors={['#04342C', '#0F6E56']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={s.loyaltyCard}
+        >
           <View style={s.loyaltyHeader}>
             <Text style={s.loyaltyTitle}>iHotel Loyalty</Text>
-            <Text style={s.loyaltyLevel}>🥈 Мөнгө</Text>
+            <View style={s.loyaltyLevelBadge}>
+              <Text style={s.loyaltyLevel}>{'🥈 Мөнгө'}</Text>
+            </View>
           </View>
           <Text style={s.loyaltyPoints}>240 оноо</Text>
           <View style={s.progressBg}>
             <View style={[s.progressFill, { width: '60%' }]} />
           </View>
           <Text style={s.progressLabel}>Алтан зэрэгт 160 оноо дутуу</Text>
-        </View>
+        </LinearGradient>
 
+        {/* Quick Actions */}
         <View style={s.quickGrid}>
-          {QUICK_ACTIONS.map((a, i) => (
-            <Pressable
-              key={i}
-              style={s.quickItem}
-              onPress={() => Alert.alert(a.label)}
-            >
-              <Text style={s.quickIcon}>{a.icon}</Text>
-              <Text style={s.quickLabel}>{a.label}</Text>
-            </Pressable>
-          ))}
+          {QUICK_ACTIONS.map((a, i) => {
+            const Icon = a.icon;
+            return (
+              <Pressable
+                key={i}
+                style={({ pressed }) => [s.quickItem, pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  Alert.alert(a.label);
+                }}
+              >
+                <View style={[s.quickIconWrap, { backgroundColor: a.color + '12' }]}>
+                  <Icon size={22} color={a.color} strokeWidth={1.8} />
+                </View>
+                <Text style={s.quickLabel}>{a.label}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
+        {/* Menu */}
         <View style={s.menu}>
-          {MENU_ITEMS.map((m, i) => (
-            <Pressable
-              key={i}
-              style={s.menuRow}
-              onPress={() => Alert.alert(m.label)}
-            >
-              <Text style={s.menuIcon}>{m.icon}</Text>
-              <View style={s.menuTextWrap}>
-                <Text style={s.menuLabel}>{m.label}</Text>
-                {m.sub ? <Text style={s.menuSub}>{m.sub}</Text> : null}
-              </View>
-              <Text style={s.menuArrow}>›</Text>
-            </Pressable>
-          ))}
+          {MENU_ITEMS.map((m, i) => {
+            const Icon = m.icon;
+            return (
+              <Pressable
+                key={i}
+                style={({ pressed }) => [s.menuRow, pressed && { backgroundColor: '#F8F7F3' }]}
+                onPress={() => Alert.alert(m.label)}
+              >
+                <View style={s.menuIconWrap}>
+                  <Icon size={20} color="#555" strokeWidth={1.8} />
+                </View>
+                <View style={s.menuTextWrap}>
+                  <Text style={s.menuLabel}>{m.label}</Text>
+                  {m.sub ? <Text style={s.menuSub}>{m.sub}</Text> : null}
+                </View>
+                <ChevronRight size={18} color="#CCC" strokeWidth={2} />
+              </Pressable>
+            );
+          })}
         </View>
 
+        {/* Logout */}
         <Pressable
-          style={s.logoutBtn}
+          style={({ pressed }) => [s.logoutBtn, pressed && { backgroundColor: '#FFF5F5' }]}
           onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             Alert.alert('Гарах', 'Та гарахдаа итгэлтэй байна уу?', [
               { text: 'Үгүй' },
-              { text: 'Тийм', onPress: () => router.replace('/') },
+              { text: 'Тийм', onPress: () => router.replace('/'), style: 'destructive' },
             ]);
           }}
         >
+          <LogOut size={18} color="#E24B4A" strokeWidth={2} />
           <Text style={s.logoutText}>Гарах</Text>
         </Pressable>
 
@@ -134,8 +196,8 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
   scroll: { paddingHorizontal: 20 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginTop: 12, marginBottom: 20 },
-  avatarSection: { alignItems: 'center', marginBottom: 20 },
+  headerTitle: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', marginTop: 12, marginBottom: 20, letterSpacing: -0.3 },
+  avatarSection: { alignItems: 'center', marginBottom: 24 },
   avatar: {
     width: 80,
     height: 80,
@@ -143,84 +205,126 @@ const s = StyleSheet.create({
     backgroundColor: '#0F6E56',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   avatarText: { fontSize: 28, fontWeight: '700', color: '#FFF' },
   name: { fontSize: 20, fontWeight: '600', color: '#1A1A1A' },
-  email: { fontSize: 13, color: '#888', marginTop: 2 },
+  email: { fontSize: 13, color: '#888', marginTop: 3 },
   loyaltyCard: {
-    backgroundColor: '#0F6E56',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
+    borderRadius: 18,
+    padding: 22,
+    marginBottom: 22,
+    shadowColor: '#04342C',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    elevation: 6,
   },
-  loyaltyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  loyaltyTitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
-  loyaltyLevel: { fontSize: 13, color: '#FFF', fontWeight: '600' },
-  loyaltyPoints: { fontSize: 32, fontWeight: '700', color: '#FFF', marginBottom: 12 },
+  loyaltyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  loyaltyTitle: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
+  loyaltyLevelBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  loyaltyLevel: { fontSize: 12, color: '#FFF', fontWeight: '600' },
+  loyaltyPoints: { fontSize: 34, fontWeight: '700', color: '#FFF', marginBottom: 14 },
   progressBg: {
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 3,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   progressFill: { height: 6, backgroundColor: '#FFF', borderRadius: 3 },
-  progressLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+  progressLabel: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 20,
+    marginBottom: 22,
     gap: 12,
   },
   quickItem: {
     width: '47%' as any,
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
+    padding: 18,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  quickIcon: { fontSize: 24, marginBottom: 6 },
+  quickIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   quickLabel: { fontSize: 13, fontWeight: '500', color: '#1A1A1A' },
   menu: {
     backgroundColor: '#FFF',
-    borderRadius: 14,
+    borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F3F3',
+    borderBottomColor: '#F5F5F5',
+    gap: 12,
   },
-  menuIcon: { fontSize: 20, marginRight: 12 },
+  menuIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F8F7F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   menuTextWrap: { flex: 1 },
   menuLabel: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
-  menuSub: { fontSize: 12, color: '#999', marginTop: 1 },
-  menuArrow: { fontSize: 20, color: '#CCC' },
+  menuSub: { fontSize: 12, color: '#999', marginTop: 2 },
   logoutBtn: {
+    flexDirection: 'row',
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#F5E5E5',
   },
-  logoutText: { fontSize: 15, fontWeight: '500', color: '#E53935' },
+  logoutText: { fontSize: 15, fontWeight: '500', color: '#E24B4A' },
 });
 
-const tabStyles = StyleSheet.create({
+const tabS = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#EDEDED',
-    paddingBottom: 20,
-    paddingTop: 8,
+    paddingBottom: 28,
+    paddingTop: 10,
   },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-  label: { fontSize: 11, color: '#999' },
+  tab: { flex: 1, alignItems: 'center', gap: 3 },
+  label: { fontSize: 10, color: '#999', fontWeight: '500' },
   active: { color: '#0F6E56', fontWeight: '600' },
 });

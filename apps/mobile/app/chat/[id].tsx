@@ -9,8 +9,11 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { ArrowLeft, Phone, Send } from 'lucide-react-native';
 
 type ChatMessage = {
   id: string;
@@ -34,8 +37,39 @@ const QUICK_REPLIES = [
 const HOST_REPLIES = [
   'Мэдээж! Тэр өрөө маш тав тухтай, цонхоор нь уулын харагдац гоё.',
   'Нэмэлт мэдээлэл хэрэгтэй бол чөлөөтэй асууна уу!',
-  'Бид таныг хүлээж байна!',
+  'Бид таныг хүлээж байна! Check-in 14:00-оос, check-out 12:00 хүртэл.',
+  'Тийм, зогсоол үнэгүй. Машины дугаараа ирэхээсээ өмнө илгээнэ үү.',
 ];
+
+function TypingDots() {
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animate = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0.3, duration: 300, useNativeDriver: true }),
+        ]),
+      );
+    const a1 = animate(dot1, 0);
+    const a2 = animate(dot2, 200);
+    const a3 = animate(dot3, 400);
+    a1.start(); a2.start(); a3.start();
+    return () => { a1.stop(); a2.stop(); a3.stop(); };
+  }, []);
+
+  return (
+    <View style={ms.typingRow}>
+      {[dot1, dot2, dot3].map((d, i) => (
+        <Animated.View key={i} style={[ms.typingDot, { opacity: d }]} />
+      ))}
+    </View>
+  );
+}
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -50,6 +84,7 @@ export default function ChatScreen() {
   const sendMessage = useCallback(
     (text: string) => {
       if (!text.trim()) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       const userMsg: ChatMessage = {
         id: Date.now().toString(),
@@ -86,11 +121,15 @@ export default function ChatScreen() {
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isHost = item.sender === 'host';
     return (
-      <View style={[bs.wrap, isHost ? bs.hostWrap : bs.userWrap]}>
-        <View style={[bs.bubble, isHost ? bs.hostBubble : bs.userBubble]}>
-          <Text style={[bs.text, isHost ? bs.hostText : bs.userText]}>{item.text}</Text>
+      <View style={[ms.wrap, isHost ? ms.hostWrap : ms.userWrap]}>
+        {isHost && (
+          <View style={ms.hostMiniAvatar}>
+            <Text style={ms.hostMiniAvatarText}>ДМ</Text>
+          </View>
+        )}
+        <View style={[ms.bubble, isHost ? ms.hostBubble : ms.userBubble]}>
+          <Text style={[ms.text, isHost ? ms.hostText : ms.userText]}>{item.text}</Text>
         </View>
-        <Text style={bs.time}>{item.time}</Text>
       </View>
     );
   };
@@ -99,25 +138,36 @@ export default function ChatScreen() {
     <SafeAreaView style={s.safe}>
       {/* Header */}
       <View style={s.header}>
-        <Pressable onPress={() => router.back()} style={s.backBtn}>
-          <Text style={s.backText}>←</Text>
+        <Pressable
+          style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={20} color="#1A1A1A" strokeWidth={2.2} />
         </Pressable>
         <View style={s.headerAvatar}>
           <Text style={s.headerAvatarText}>ДМ</Text>
           <View style={s.onlineDot} />
         </View>
         <View style={s.headerInfo}>
-          <Text style={s.headerName}>Дэлгэрмаа · Хост</Text>
-          <Text style={s.headerStatus}>Online · 10 мин хариулна</Text>
+          <Text style={s.headerName}>Дэлгэрмаа</Text>
+          <Text style={s.headerStatus}>Online</Text>
         </View>
-        <Pressable onPress={() => router.push(`/call/${id}`)}>
-          <Text style={s.phoneIcon}>📞</Text>
+        <Pressable
+          style={({ pressed }) => [s.phoneBtn, pressed && { opacity: 0.7 }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(`/call/${id}`);
+          }}
+        >
+          <Phone size={20} color="#0F6E56" strokeWidth={2} />
         </Pressable>
       </View>
 
       {/* Date separator */}
       <View style={s.dateSep}>
+        <View style={s.dateSepLine} />
         <Text style={s.dateSepText}>Өнөөдөр</Text>
+        <View style={s.dateSepLine} />
       </View>
 
       <KeyboardAvoidingView
@@ -131,13 +181,16 @@ export default function ChatScreen() {
           renderItem={renderMessage}
           contentContainerStyle={s.messageList}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          showsVerticalScrollIndicator={false}
           ListFooterComponent={
             isTyping ? (
-              <View style={[bs.wrap, bs.hostWrap]}>
-                <View style={[bs.bubble, bs.hostBubble]}>
-                  <Text style={bs.typingDots}>...</Text>
+              <View style={[ms.wrap, ms.hostWrap]}>
+                <View style={ms.hostMiniAvatar}>
+                  <Text style={ms.hostMiniAvatarText}>ДМ</Text>
                 </View>
-                <Text style={bs.typingLabel}>Дэлгэрмаа бичиж байна...</Text>
+                <View style={[ms.bubble, ms.hostBubble]}>
+                  <TypingDots />
+                </View>
               </View>
             ) : null
           }
@@ -147,7 +200,11 @@ export default function ChatScreen() {
         {messages.length <= 4 && (
           <View style={s.quickRow}>
             {QUICK_REPLIES.map((q) => (
-              <Pressable key={q} style={s.quickChip} onPress={() => sendMessage(q)}>
+              <Pressable
+                key={q}
+                style={({ pressed }) => [s.quickChip, pressed && { backgroundColor: '#E8F5E9' }]}
+                onPress={() => sendMessage(q)}
+              >
                 <Text style={s.quickText}>{q}</Text>
               </Pressable>
             ))}
@@ -169,7 +226,7 @@ export default function ChatScreen() {
             onPress={() => sendMessage(input)}
             disabled={!input.trim()}
           >
-            <Text style={s.sendText}>➤</Text>
+            <Send size={18} color="#FFF" strokeWidth={2} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -177,19 +234,28 @@ export default function ChatScreen() {
   );
 }
 
-const bs = StyleSheet.create({
-  wrap: { paddingHorizontal: 16, marginBottom: 8 },
-  hostWrap: { alignItems: 'flex-start' },
-  userWrap: { alignItems: 'flex-end' },
-  bubble: { maxWidth: '80%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
-  hostBubble: { backgroundColor: '#E3F0FF', borderBottomLeftRadius: 4 },
-  userBubble: { backgroundColor: '#1A1A1A', borderBottomRightRadius: 4 },
+const ms = StyleSheet.create({
+  wrap: { paddingHorizontal: 16, marginBottom: 10, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  hostWrap: { justifyContent: 'flex-start' },
+  userWrap: { justifyContent: 'flex-end' },
+  hostMiniAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#4A90D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  hostMiniAvatarText: { fontSize: 10, fontWeight: '600', color: '#FFF' },
+  bubble: { maxWidth: '78%', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 11 },
+  hostBubble: { backgroundColor: '#E3F0FF', borderBottomLeftRadius: 6 },
+  userBubble: { backgroundColor: '#1A1A1A', borderBottomRightRadius: 6 },
   text: { fontSize: 15, lineHeight: 22 },
   hostText: { color: '#1A1A1A' },
   userText: { color: '#FFF' },
-  time: { fontSize: 10, color: '#999', marginTop: 3 },
-  typingDots: { fontSize: 22, color: '#666', letterSpacing: 4 },
-  typingLabel: { fontSize: 11, color: '#999', marginTop: 2 },
+  typingRow: { flexDirection: 'row', gap: 4, paddingVertical: 4, paddingHorizontal: 2 },
+  typingDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#4A90D9' },
 });
 
 const s = StyleSheet.create({
@@ -205,12 +271,18 @@ const s = StyleSheet.create({
     borderBottomColor: '#EDEDED',
     gap: 10,
   },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F3F3', alignItems: 'center', justifyContent: 'center' },
-  backText: { fontSize: 18, color: '#1A1A1A' },
-  headerAvatar: {
+  backBtn: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 12,
+    backgroundColor: '#F3F3F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#4A90D9',
     alignItems: 'center',
     justifyContent: 'center',
@@ -220,25 +292,30 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 11,
+    height: 11,
+    borderRadius: 5.5,
     backgroundColor: '#22C55E',
     borderWidth: 2,
     borderColor: '#FFF',
   },
   headerInfo: { flex: 1 },
   headerName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  headerStatus: { fontSize: 11, color: '#22C55E' },
-  phoneIcon: { fontSize: 20 },
-  dateSep: { alignItems: 'center', paddingVertical: 10 },
+  headerStatus: { fontSize: 11, color: '#22C55E', fontWeight: '500', marginTop: 1 },
+  phoneBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateSep: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, gap: 12 },
+  dateSepLine: { flex: 1, height: 1, backgroundColor: '#EDEDED' },
   dateSepText: {
     fontSize: 11,
     color: '#888',
-    backgroundColor: '#F3F3F3',
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 20,
+    fontWeight: '500',
   },
   messageList: { paddingTop: 8, paddingBottom: 8 },
   quickRow: {
@@ -246,45 +323,50 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
   quickChip: {
     backgroundColor: '#FFF',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#0F6E56',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   quickText: { fontSize: 13, color: '#0F6E56', fontWeight: '500' },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingBottom: 28,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#EDEDED',
+    gap: 8,
   },
   textInput: {
     flex: 1,
     backgroundColor: '#F3F3F3',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     fontSize: 15,
     maxHeight: 100,
     color: '#1A1A1A',
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#0F6E56',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  sendBtnDisabled: { opacity: 0.4 },
-  sendText: { fontSize: 18, color: '#FFF' },
+  sendBtnDisabled: { opacity: 0.35 },
 });
