@@ -6,15 +6,15 @@
   "types": "./index.tsx",
   "dependencies": {
     "@ihotel/config": "workspace:*",
-    "@ihotel/types": "workspace:*",
-    "expo-haptics": "^15.0.8",
-    "expo-image": "^3.0.11",
-    "lucide-react-native": "^1.8.0",
-    "react-native-reanimated": "^4.1.7"
+    "@ihotel/types": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",
-    "react-native": ">=0.74"
+    "react-native": ">=0.74",
+    "expo-haptics": "*",
+    "expo-image": "*",
+    "lucide-react-native": "*",
+    "react-native-reanimated": "*"
   },
   "scripts": {
     "clean": "rm -rf dist"
