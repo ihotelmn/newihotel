@@ -1,0 +1,13 @@
+{
+  "name": "@ihotel/api",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "@ihotel/types": "workspace:*"
+  },
+  "scripts": {
+    "clean": "rm -rf dist"
+  }
+}
