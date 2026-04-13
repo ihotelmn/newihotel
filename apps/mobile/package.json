@@ -37,6 +37,7 @@
     "sonner-native": "^0.24.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },

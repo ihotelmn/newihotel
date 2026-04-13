@@ -15,15 +15,10 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
-// Ensure only one copy of React is used
-config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName === 'react' || moduleName === 'react-native') {
-    return {
-      filePath: require.resolve(moduleName, { paths: [projectRoot] }),
-      type: 'sourceFile',
-    };
-  }
-  return context.resolveRequest(context, moduleName, platform);
+// Ensure only one copy of React / React Native is used across all packages
+config.resolver.extraNodeModules = {
+  react: path.resolve(projectRoot, 'node_modules/react'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
 };
 
 module.exports = config;
