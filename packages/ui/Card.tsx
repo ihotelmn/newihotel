@@ -1,18 +1,56 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors, radius, fontWeights } from '@ihotel/config';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import { Image } from 'expo-image';
+import { colors, radius, fontWeights, spacing, easing } from '@ihotel/config';
 
 interface CardProps {
   title: string;
   subtitle?: string;
   imageUrl?: string;
+  onPress?: () => void;
 }
 
-export function Card({ title, subtitle, imageUrl }: CardProps) {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export function Card({ title, subtitle, imageUrl, onPress }: CardProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    if (onPress) scale.value = withSpring(0.97, easing.out);
+  };
+
+  const handlePressOut = () => {
+    if (onPress) scale.value = withSpring(1, easing.out);
+  };
+
+  const Wrapper = onPress ? AnimatedPressable : View;
+  const wrapperProps = onPress
+    ? {
+        onPress,
+        onPressIn: handlePressIn,
+        onPressOut: handlePressOut,
+        style: [styles.container, animatedStyle],
+      }
+    : { style: styles.container };
+
   return (
-    <View style={styles.container}>
+    <Wrapper {...(wrapperProps as any)}>
       {imageUrl && (
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          contentFit="cover"
+          transition={200}
+        />
       )}
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>
@@ -24,7 +62,7 @@ export function Card({ title, subtitle, imageUrl }: CardProps) {
           </Text>
         )}
       </View>
-    </View>
+    </Wrapper>
   );
 }
 
@@ -41,7 +79,7 @@ const styles = StyleSheet.create({
     height: 180,
   },
   content: {
-    padding: 16,
+    padding: spacing.lg,
   },
   title: {
     fontSize: 18,
@@ -52,6 +90,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: fontWeights.regular as '400',
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
 });

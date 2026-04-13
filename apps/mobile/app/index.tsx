@@ -27,7 +27,7 @@ export default function WelcomeScreen() {
           <View style={styles.spacer} />
           <Button
             title="🔔 Host-аас мессеж демо"
-            variant="outline"
+            variant="secondary"
             onPress={() => {}}
           />
         </View>

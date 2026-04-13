@@ -6,7 +6,10 @@
   "types": "./index.tsx",
   "dependencies": {
     "@ihotel/config": "workspace:*",
-    "@ihotel/types": "workspace:*"
+    "@ihotel/types": "workspace:*",
+    "expo-haptics": "^55.0.14",
+    "expo-image": "^55.0.8",
+    "react-native-reanimated": "^4.3.0"
   },
   "peerDependencies": {
     "react": ">=18",
