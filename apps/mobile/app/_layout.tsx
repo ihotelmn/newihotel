@@ -20,6 +20,18 @@ export default function RootLayout() {
           name="hotel/[id]"
           options={{ animation: 'slide_from_bottom' }}
         />
+        <Stack.Screen
+          name="chat/[id]"
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="call/[id]"
+          options={{ animation: 'fade', contentStyle: { backgroundColor: '#0A0A0A' } }}
+        />
+        <Stack.Screen
+          name="booking/[id]"
+          options={{ animation: 'fade' }}
+        />
       </Stack>
       <Toaster position="top-center" />
     </GestureHandlerRootView>
