@@ -1,20 +1,20 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const fs = require('fs');
 
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// Enable symlink support (required for pnpm)
-config.resolver.unstable_enableSymlinks = true;
+// Watch shared packages for live reload
+const packagesDir = path.resolve(monorepoRoot, 'packages');
+config.watchFolders = fs
+  .readdirSync(packagesDir)
+  .map((name) => path.resolve(packagesDir, name));
 
-// Watch monorepo root so shared packages trigger rebuilds
-config.watchFolders = [monorepoRoot];
-
-// Resolve node_modules from both app and monorepo root
+// With hoisted node_modules, everything is in monorepo root
 config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
