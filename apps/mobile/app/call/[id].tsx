@@ -1,106 +1,86 @@
-import React, { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { PhoneOff, MicOff, Calendar, Users, BedDouble, Banknote } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { fontWeights, spacing, radius, animation } from '@ihotel/config';
-import { useHaptic } from '@ihotel/ui';
 
 export default function CallScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const haptic = useHaptic();
+  const [muted, setMuted] = useState(false);
+  const [dots, setDots] = useState('');
 
-  // avatar pulse
-  const pulse = useSharedValue(1);
   useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 1200 }),
-        withTiming(1, { duration: 1200 }),
-      ),
-      -1,
-    );
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-  }));
-
   const handleEndCall = () => {
-    haptic.medium();
     router.replace(`/booking/${id}`);
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <LinearGradient
-        colors={['#04342C', '#0A0A0A']}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={s.container}>
+      <SafeAreaView style={s.safe}>
+        {/* Top */}
+        <View style={s.top}>
+          <Text style={s.callingTo}>Хангай Resort руу</Text>
+          <Text style={s.callingStatus}>Залгаж байна{dots}</Text>
 
-      <SafeAreaView style={styles.safe}>
-        {/* Top info */}
-        <View style={styles.top}>
-          <Text style={styles.callingLabel}>Хангай Resort руу</Text>
-          <Text style={styles.callingStatus}>Залгаж байна...</Text>
-
-          {/* Avatar with pulse */}
-          <Animated.View style={[styles.avatarWrap, pulseStyle]}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>ХР</Text>
+          {/* Avatar */}
+          <View style={s.avatarWrap}>
+            <View style={s.avatar}>
+              <Text style={s.avatarText}>ХР</Text>
             </View>
-          </Animated.View>
+          </View>
         </View>
 
-        {/* Pre-call info card */}
-        <View style={styles.infoCardWrap}>
-          <BlurView intensity={30} tint="dark" style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Буудалд илгээгдсэн</Text>
-            <View style={styles.infoRow}>
-              <Calendar size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-              <Text style={styles.infoText}>4-р сарын 20 — 22 (2 шөнө)</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Users size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-              <Text style={styles.infoText}>2 том хүн</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <BedDouble size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-              <Text style={styles.infoText}>Deluxe өрөө</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Banknote size={16} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-              <Text style={styles.infoText}>₮250,000 — ₮300,000</Text>
-            </View>
-          </BlurView>
+        {/* Pre-call info */}
+        <View style={s.infoCard}>
+          <Text style={s.infoTitle}>Буудалд илгээгдсэн</Text>
+          <View style={s.infoRow}>
+            <Text style={s.infoIcon}>📅</Text>
+            <Text style={s.infoText}>4-р сарын 20 — 22 (2 шөнө)</Text>
+          </View>
+          <View style={s.infoRow}>
+            <Text style={s.infoIcon}>👥</Text>
+            <Text style={s.infoText}>2 том хүн</Text>
+          </View>
+          <View style={s.infoRow}>
+            <Text style={s.infoIcon}>🛏️</Text>
+            <Text style={s.infoText}>Deluxe өрөө</Text>
+          </View>
+          <View style={s.infoRow}>
+            <Text style={s.infoIcon}>💰</Text>
+            <Text style={s.infoText}>₮250,000 — ₮300,000</Text>
+          </View>
         </View>
 
         {/* Price lock */}
-        <View style={styles.priceLock}>
-          <Text style={styles.priceLockText}>
+        <View style={s.priceLock}>
+          <Text style={s.priceLockText}>
             🔒 Үнэ lock — ₮280K/шөнө · 10% хүртэл өөрчилж болно
           </Text>
         </View>
 
-        {/* Call controls */}
-        <View style={styles.controls}>
-          <Pressable style={styles.muteBtn}>
-            <MicOff size={28} color="#FFFFFF" strokeWidth={1.8} />
+        {/* Controls */}
+        <View style={s.controls}>
+          <Pressable
+            style={[s.muteBtn, muted && s.muteBtnActive]}
+            onPress={() => setMuted(!muted)}
+          >
+            <Text style={s.controlIcon}>{muted ? '🔇' : '🔊'}</Text>
+            <Text style={s.controlLabel}>{muted ? 'Дуугүй' : 'Дуу'}</Text>
           </Pressable>
-          <Pressable style={styles.endCallBtn} onPress={handleEndCall}>
-            <PhoneOff size={28} color="#FFFFFF" strokeWidth={2} />
+          <Pressable style={s.endCallBtn} onPress={handleEndCall}>
+            <Text style={s.endCallIcon}>📞</Text>
+            <Text style={s.endCallLabel}>Дуусгах</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -108,32 +88,21 @@ export default function CallScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0A0A0A' },
   safe: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: spacing['2xl'],
+    paddingHorizontal: 28,
   },
-
-  /* top */
   top: {
     alignItems: 'center',
-    paddingTop: spacing['3xl'],
-    gap: spacing.sm,
+    paddingTop: 60,
+    gap: 8,
   },
-  callingLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  callingStatus: {
-    fontSize: 20,
-    fontWeight: fontWeights.medium as '500',
-    color: '#FFFFFF',
-  },
-  avatarWrap: {
-    marginTop: spacing['2xl'],
-  },
+  callingTo: { fontSize: 14, color: 'rgba(255,255,255,0.6)' },
+  callingStatus: { fontSize: 20, fontWeight: '600', color: '#FFF' },
+  avatarWrap: { marginTop: 32 },
   avatar: {
     width: 112,
     height: 112,
@@ -144,56 +113,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
-    fontSize: 36,
-    fontWeight: fontWeights.medium as '500',
-    color: '#FFFFFF',
-  },
-
-  /* info card */
-  infoCardWrap: {
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-  },
+  avatarText: { fontSize: 36, fontWeight: '600', color: '#FFF' },
   infoCard: {
-    padding: spacing.lg + 4,
-    gap: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
   },
   infoTitle: {
     fontSize: 13,
-    fontWeight: fontWeights.medium as '500',
+    fontWeight: '500',
     color: 'rgba(255,255,255,0.7)',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
-
-  /* price lock */
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  infoIcon: { fontSize: 16 },
+  infoText: { fontSize: 14, color: '#FFF' },
   priceLock: {
     backgroundColor: 'rgba(15,110,86,0.25)',
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
   },
   priceLockText: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
-
-  /* controls */
   controls: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing['3xl'],
-    paddingBottom: spacing.xl,
+    gap: 40,
+    paddingBottom: 32,
   },
   muteBtn: {
     width: 68,
@@ -203,6 +154,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  muteBtnActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  controlIcon: { fontSize: 24 },
+  controlLabel: { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   endCallBtn: {
     width: 68,
     height: 68,
@@ -210,14 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E24B4A',
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#E24B4A',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 12,
-      },
-      android: { elevation: 8 },
-    }),
   },
+  endCallIcon: { fontSize: 24 },
+  endCallLabel: { fontSize: 10, color: '#FFF', marginTop: 2 },
 });

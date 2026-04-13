@@ -1,277 +1,171 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
+  Pressable,
   StyleSheet,
-  Platform,
+  SafeAreaView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Check } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import {
-  colors,
-  fontWeights,
-  spacing,
-  radius,
-  animation,
-  easing,
-} from '@ihotel/config';
-import { Button, useHaptic } from '@ihotel/ui';
 
-/* ─── booking confirmation ─── */
+const SUMMARY_ROWS = [
+  { label: 'Буудал', value: 'Хангай Resort' },
+  { label: 'Огноо', value: '4-р сарын 20 — 22 (2 шөнө)' },
+  { label: 'Өрөө', value: 'Deluxe · 2 том хүн' },
+  { label: 'Захиалгын №', value: 'IH-20260420-0381' },
+  { label: 'Нийт', value: '₮560,000' },
+];
 
 export default function BookingScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const haptic = useHaptic();
-
-  // entrance animations
-  const checkScale = useSharedValue(0);
-  const checkOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(30);
-  const contentOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    haptic.success();
-
-    // checkmark
-    checkScale.value = withSpring(1, { damping: 12, stiffness: 120 });
-    checkOpacity.value = withTiming(1, { duration: animation.base });
-
-    // content
-    contentTranslateY.value = withDelay(400, withSpring(0, easing.out));
-    contentOpacity.value = withDelay(
-      400,
-      withTiming(1, { duration: animation.base }),
-    );
-  }, []);
-
-  const checkStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkScale.value }],
-    opacity: checkOpacity.value,
-  }));
-
-  const contentStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: contentTranslateY.value }],
-    opacity: contentOpacity.value,
-  }));
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#E1F5EE', '#FFFFFF']}
-        style={StyleSheet.absoluteFill}
-      />
-      <SafeAreaView style={styles.safe}>
+    <View style={s.container}>
+      <SafeAreaView style={s.safe}>
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={s.scroll}
           showsVerticalScrollIndicator={false}
         >
-          {/* Success checkmark */}
-          <Animated.View style={[styles.checkWrap, checkStyle]}>
-            <View style={styles.checkCircle}>
-              <Check size={44} color="#FFFFFF" strokeWidth={3} />
+          {/* Checkmark */}
+          <View style={s.checkWrap}>
+            <View style={s.checkCircle}>
+              <Text style={s.checkText}>✓</Text>
             </View>
-          </Animated.View>
+          </View>
 
-          {/* Content */}
-          <Animated.View style={[styles.content, contentStyle]}>
-            <Text style={styles.title}>Захиалга амжилттай</Text>
-            <Text style={styles.subtitle}>
-              Хост Дэлгэрмаа захиалгыг баталгаажуулав.
+          <Text style={s.title}>Захиалга амжилттай</Text>
+          <Text style={s.subtitle}>
+            Хост Дэлгэрмаа захиалгыг баталгаажуулав.
+          </Text>
+          <Text style={s.loyalty}>+50 loyalty оноо авсан</Text>
+
+          {/* Booking Summary */}
+          <View style={s.card}>
+            {SUMMARY_ROWS.map((row, i) => (
+              <View key={i} style={s.summaryRow}>
+                <Text style={s.summaryLabel}>{row.label}</Text>
+                <Text
+                  style={[
+                    s.summaryValue,
+                    i === SUMMARY_ROWS.length - 1 && s.summaryValueBold,
+                  ]}
+                >
+                  {row.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Payment hint */}
+          <View style={s.paymentHint}>
+            <Text style={s.paymentText}>
+              💳 Буудалд очиж cash төлнө
             </Text>
-            <Text style={styles.loyalty}>+50 loyalty оноо авсан</Text>
+          </View>
 
-            {/* Booking summary */}
-            <View style={styles.card}>
-              <SummaryRow label="Буудал" value="Хангай Resort" />
-              <SummaryRow label="Огноо" value="4-р сарын 20 — 22 (2 шөнө)" />
-              <SummaryRow label="Өрөө" value="Deluxe · 2 том хүн" />
-              <SummaryRow label="Захиалгын №" value="IH-20250420-0381" />
-              <View style={styles.divider} />
-              <SummaryRow label="Нийт" value="₮560,000" bold />
-            </View>
-
-            {/* Payment hint */}
-            <View style={styles.paymentHint}>
-              <Text style={styles.paymentText}>
-                💳 Буудалд очиж cash төлнө
-              </Text>
-            </View>
-
-            {/* CTAs */}
-            <View style={styles.actions}>
-              <Button
-                title="Аялал үзэх"
-                onPress={() => router.replace('/(guest)/search')}
-              />
-              <View style={styles.spacer} />
-              <Button
-                title="Үргэлжлүүлэн хайх"
-                variant="secondary"
-                onPress={() => router.replace('/(guest)/search')}
-              />
-            </View>
-          </Animated.View>
+          {/* Buttons */}
+          <Pressable
+            style={s.primaryBtn}
+            onPress={() => router.replace('/(guest)/trips')}
+          >
+            <Text style={s.primaryBtnText}>Аялал үзэх</Text>
+          </Pressable>
+          <Pressable
+            style={s.secondaryBtn}
+            onPress={() => router.replace('/(guest)/search')}
+          >
+            <Text style={s.secondaryBtnText}>Хайх</Text>
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-function SummaryRow({
-  label,
-  value,
-  bold = false,
-}: {
-  label: string;
-  value: string;
-  bold?: boolean;
-}) {
-  return (
-    <View style={summaryStyles.row}>
-      <Text style={summaryStyles.label}>{label}</Text>
-      <Text
-        style={[summaryStyles.value, bold && summaryStyles.valueBold]}
-        numberOfLines={1}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-const summaryStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm + 2,
-  },
-  label: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  value: {
-    fontSize: 13,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    flexShrink: 1,
-    textAlign: 'right',
-  },
-  valueBold: {
-    fontSize: 16,
-    color: colors.primary,
-  },
-});
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#E8F5E9' },
   safe: { flex: 1 },
   scroll: {
-    paddingHorizontal: spacing.xl + 4,
-    paddingTop: spacing['3xl'] + 20,
-    paddingBottom: spacing['3xl'],
-  },
-
-  /* checkmark */
-  checkWrap: {
+    paddingHorizontal: 28,
+    paddingTop: 80,
+    paddingBottom: 40,
     alignItems: 'center',
-    marginBottom: spacing.xl,
   },
+  checkWrap: { marginBottom: 24 },
   checkCircle: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: colors.primary,
+    backgroundColor: '#0F6E56',
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-      },
-      android: { elevation: 8 },
-    }),
   },
-
-  /* content */
-  content: {
-    alignItems: 'center',
-  },
+  checkText: { fontSize: 40, color: '#FFF', fontWeight: '700' },
   title: {
     fontSize: 26,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#555',
     textAlign: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: 6,
   },
   loyalty: {
     fontSize: 14,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.primary,
-    marginBottom: spacing.xl,
+    fontWeight: '600',
+    color: '#0F6E56',
+    marginBottom: 24,
   },
-
-  /* card */
   card: {
     width: '100%',
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    padding: spacing.lg + 4,
-    marginBottom: spacing.lg,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-      },
-      android: { elevation: 3 },
-    }),
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
   },
-  divider: {
-    height: 0.5,
-    backgroundColor: colors.border as string,
-    marginVertical: spacing.xs,
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F3F3',
   },
-
-  /* payment */
+  summaryLabel: { fontSize: 13, color: '#888' },
+  summaryValue: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', flexShrink: 1, textAlign: 'right' },
+  summaryValueBold: { fontSize: 16, fontWeight: '700', color: '#0F6E56' },
   paymentHint: {
-    backgroundColor: '#F1EFE8',
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginBottom: spacing['2xl'],
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 24,
     width: '100%',
     alignItems: 'center',
   },
-  paymentText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-
-  /* actions */
-  actions: {
+  paymentText: { fontSize: 13, color: '#555' },
+  primaryBtn: {
     width: '100%',
+    backgroundColor: '#0F6E56',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  spacer: {
-    height: spacing.md,
+  primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  secondaryBtn: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
+  secondaryBtnText: { fontSize: 16, fontWeight: '500', color: '#1A1A1A' },
 });

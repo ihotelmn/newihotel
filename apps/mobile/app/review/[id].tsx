@@ -1,112 +1,103 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
-import { Image } from 'expo-image';
-import { ArrowLeft, Star as StarIcon, Gift } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { toast } from 'sonner-native';
-import { colors, fontWeights, fontSize, spacing, radius, easing } from '@ihotel/config';
-import { Button, useHaptic } from '@ihotel/ui';
-
-const MAX_CHARS = 500;
-
-/* ─── star rating ─── */
-
-function StarRating({ rating, onRate }: { rating: number; onRate: (n: number) => void }) {
-  const haptic = useHaptic();
-  return (
-    <View style={starS.wrap}>
-      {[1, 2, 3, 4, 5].map(n => (
-        <Pressable key={n} onPress={() => { haptic.medium(); onRate(n); }} hitSlop={4}>
-          <StarIcon
-            size={32}
-            color={n <= rating ? '#EF9F27' : '#D3D1C7'}
-            fill={n <= rating ? '#EF9F27' : 'transparent'}
-            strokeWidth={n <= rating ? 0 : 1.5}
-          />
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
-const starS = StyleSheet.create({
-  wrap: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', paddingVertical: spacing.lg },
-});
-
-/* ─── screen ─── */
 
 export default function ReviewScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const haptic = useHaptic();
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = rating > 0;
+  const canSubmit = rating > 0 && !submitting;
 
   const handleSubmit = useCallback(() => {
     if (!canSubmit) return;
-    haptic.success();
     setSubmitting(true);
     setTimeout(() => {
-      toast('+30 оноо авлаа · Баярлалаа', { duration: 3000 });
-      setTimeout(() => router.replace('/(guest)/trips'), 800);
+      Alert.alert(
+        'Баярлалаа!',
+        '+30 оноо авлаа. Таны үнэлгээ бусад зочдод тусална.',
+        [{ text: 'OK', onPress: () => router.replace('/(guest)/trips') }],
+      );
     }, 600);
-  }, [canSubmit, haptic, router]);
+  }, [canSubmit, router]);
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView style={s.safe}>
       {/* Header */}
       <View style={s.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <ArrowLeft size={22} color={colors.textPrimary} strokeWidth={2} />
+        <Pressable onPress={() => router.back()} style={s.backBtn}>
+          <Text style={s.backText}>←</Text>
         </Pressable>
         <Text style={s.headerTitle}>Үнэлгээ өгөх</Text>
-        <View style={{ width: 22 }} />
+        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Hotel preview */}
         <View style={s.hotelPreview}>
-          <Image source={{ uri: 'https://picsum.photos/seed/review1/200/200' }}
-            style={s.hotelImage} contentFit="cover" transition={200} />
+          <View style={s.hotelImage}>
+            <Text style={s.hotelInitial}>Т</Text>
+          </View>
           <View style={s.hotelInfo}>
-            <Text style={s.hotelName}>Тэрэлж Lodge</Text>
+            <Text style={s.hotelName}>Тэрэлж Лодж</Text>
             <Text style={s.hotelMeta}>3/10 — 3/12 · Тэрэлж</Text>
           </View>
         </View>
 
-        {/* Rating */}
+        {/* Star Rating */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Ерөнхийд нь</Text>
-          <StarRating rating={rating} onRate={setRating} />
+          <View style={s.starsRow}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Pressable key={n} onPress={() => setRating(n)}>
+                <Text style={[s.star, n <= rating && s.starActive]}>★</Text>
+              </Pressable>
+            ))}
+          </View>
+          {rating > 0 && (
+            <Text style={s.ratingLabel}>
+              {rating === 5
+                ? 'Гайхалтай!'
+                : rating === 4
+                  ? 'Маш сайн'
+                  : rating === 3
+                    ? 'Дунд зэрэг'
+                    : rating === 2
+                      ? 'Тааруухан'
+                      : 'Муу'}
+            </Text>
+          )}
         </View>
 
-        {/* Review text */}
+        {/* Review Text */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Дэлгэрэнгүй (заавал биш)</Text>
           <View style={s.textAreaWrap}>
             <TextInput
               style={s.textArea}
               placeholder="Хостод болон бусад зочдод хэрэгтэй мэдээлэл..."
-              placeholderTextColor="#888780"
+              placeholderTextColor="#999"
               value={body}
-              onChangeText={t => setBody(t.slice(0, MAX_CHARS))}
+              onChangeText={(t) => setBody(t.slice(0, 500))}
               multiline
               textAlignVertical="top"
             />
-            <Text style={s.charCount}>{body.length}/{MAX_CHARS}</Text>
+            <Text style={s.charCount}>{body.length}/500</Text>
           </View>
         </View>
 
-        {/* Reward card */}
+        {/* Reward Card */}
         <View style={s.rewardCard}>
           <View style={s.rewardBadge}>
             <Text style={s.rewardBadgeText}>+30</Text>
@@ -120,66 +111,110 @@ export default function ReviewScreen() {
 
       {/* Bottom CTA */}
       <View style={s.bottom}>
-        <Button
-          title="Нийтлэх"
-          loading={submitting}
-          disabled={!canSubmit}
+        <Pressable
+          style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]}
           onPress={handleSubmit}
-        />
+          disabled={!canSubmit}
+        >
+          <Text style={s.submitBtnText}>
+            {submitting ? 'Илгээж байна...' : 'Нийтлэх'}
+          </Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1, backgroundColor: '#F8F7F3' },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    backgroundColor: colors.card, borderBottomWidth: 0.5, borderBottomColor: colors.border as string,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDEDED',
   },
-  headerTitle: { fontSize: fontSize.h3, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  scroll: { padding: spacing.lg + 4, gap: spacing.xl },
-
-  /* hotel preview */
+  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F3F3', alignItems: 'center', justifyContent: 'center' },
+  backText: { fontSize: 18, color: '#1A1A1A' },
+  headerTitle: { fontSize: 17, fontWeight: '600', color: '#1A1A1A' },
+  scroll: { padding: 20, gap: 24 },
   hotelPreview: {
-    flexDirection: 'row', gap: spacing.md, backgroundColor: colors.card,
-    borderRadius: radius.md, padding: spacing.md, borderWidth: 0.5, borderColor: colors.border as string,
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#EDEDED',
   },
-  hotelImage: { width: 60, height: 60, borderRadius: radius.sm },
+  hotelImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: '#C5D9C3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hotelInitial: { fontSize: 24, fontWeight: '700', color: 'rgba(0,0,0,0.15)' },
   hotelInfo: { flex: 1, justifyContent: 'center', gap: 2 },
-  hotelName: { fontSize: 15, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  hotelMeta: { fontSize: fontSize.caption, color: colors.textSecondary },
-
-  /* section */
+  hotelName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
+  hotelMeta: { fontSize: 12, color: '#888' },
   section: {},
-  sectionTitle: { fontSize: fontSize.body, fontWeight: fontWeights.medium as '500', color: colors.textPrimary, marginBottom: spacing.xs },
-
-  /* text area */
-  textAreaWrap: {
-    backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 0.5,
-    borderColor: colors.border as string, padding: spacing.md,
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginBottom: 8 },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingVertical: 12,
   },
-  textArea: { fontSize: 15, color: colors.textPrimary, minHeight: 100, paddingTop: 0 },
-  charCount: { fontSize: fontSize.tiny, color: colors.textSecondary, textAlign: 'right', marginTop: spacing.xs },
-
-  /* reward */
+  star: { fontSize: 36, color: '#D3D1C7' },
+  starActive: { color: '#F59E0B' },
+  ratingLabel: { fontSize: 14, color: '#555', textAlign: 'center', marginTop: 4 },
+  textAreaWrap: {
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#EDEDED',
+    padding: 14,
+  },
+  textArea: { fontSize: 15, color: '#1A1A1A', minHeight: 100, paddingTop: 0 },
+  charCount: { fontSize: 11, color: '#999', textAlign: 'right', marginTop: 6 },
   rewardCard: {
-    flexDirection: 'row', gap: spacing.md, backgroundColor: '#E1F5EE',
-    borderRadius: radius.md, padding: spacing.lg - 2, alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
   },
   rewardBadge: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#0F6E56',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  rewardBadgeText: { fontSize: 14, fontWeight: fontWeights.semibold as '600', color: '#FFFFFF' },
+  rewardBadgeText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
   rewardContent: { flex: 1 },
-  rewardTitle: { fontSize: 13, fontWeight: fontWeights.medium as '500', color: '#04342C' },
-  rewardText: { fontSize: fontSize.caption, color: '#04342C', marginTop: 1 },
-
-  /* bottom */
+  rewardTitle: { fontSize: 13, fontWeight: '600', color: '#04342C' },
+  rewardText: { fontSize: 12, color: '#04342C', marginTop: 1 },
   bottom: {
-    paddingHorizontal: spacing.lg + 4, paddingVertical: spacing.md,
-    backgroundColor: colors.card, borderTopWidth: 0.5, borderTopColor: colors.border as string,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
   },
+  submitBtn: {
+    backgroundColor: '#0F6E56',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  submitBtnDisabled: { opacity: 0.4 },
+  submitBtnText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,352 +6,162 @@ import {
   Pressable,
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
-  Platform,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withDelay,
-  withTiming,
-  withSequence,
-} from 'react-native-reanimated';
-import { Image } from 'expo-image';
-import {
-  ArrowLeft,
-  Heart,
-  MapPin,
-  Star,
-  ShieldCheck,
-  Lock,
-  Sparkles,
-  MessageCircle,
-  Phone,
-  CreditCard,
-} from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Badge, useHaptic } from '@ihotel/ui';
-import { fetchHotelById, fetchReviewsByHotel } from '@ihotel/api';
-import { colors, radius, fontWeights, spacing, easing, animation } from '@ihotel/config';
-import type { Hotel, Review } from '@ihotel/types';
 
-const AMENITY_LABELS: Record<string, string> = {
-  wifi: 'Wi-Fi',
-  parking: 'Зогсоол',
-  restaurant: 'Ресторан',
-  spa: 'Спа',
-  pool: 'Усан сан',
-  gym: 'Фитнесс',
-  bar: 'Бар',
-  room_service: 'Өрөөнд үйлчилгээ',
-  laundry: 'Угаалга',
-  airport_shuttle: 'Нисэх буудал',
-  business_center: 'Бизнес төв',
-  pet_friendly: 'Тэжээвэр амьтан',
-  ev_charging: 'EV цэнэглэгч',
-  sauna: 'Саун',
-  breakfast: 'Өглөөний цай',
+const HOTELS: Record<string, {
+  name: string; city: string; rating: number; reviews: number;
+  price: number; color: string; amenities: string[];
+  aiSummary: string; hostName: string; hostInitials: string;
+}> = {
+  '1': { name: 'Шангри-Ла Улаанбаатар', city: 'Улаанбаатар', rating: 4.8, reviews: 342, price: 450000, color: '#E8D5B7', amenities: ['Wi-Fi', 'Ресторан', 'Спа', 'Фитнесс', 'Зогсоол', 'Бар'], aiSummary: 'Зочид цэвэр байдал, өндөр зэрэглэлийн үйлчилгээг онцолдог. Хотын төвд байрлалтай тул зорчиход тохиромжтой.', hostName: 'Болормаа', hostInitials: 'БМ' },
+  '2': { name: 'Тэрэлж Лодж', city: 'Тэрэлж', rating: 4.6, reviews: 128, price: 180000, color: '#C5D9C3', amenities: ['Wi-Fi', 'Ресторан', 'Морь унах', 'Явган аялал'], aiSummary: 'Байгалийн үзэсгэлэнт газар, амар тайван орчин. Wi-Fi заримдаа тасалддаг.', hostName: 'Дэлгэрмаа', hostInitials: 'ДМ' },
+  '3': { name: 'Говийн Гэр Кэмп', city: 'Өмнөговь', rating: 4.5, reviews: 87, price: 95000, color: '#D4C4A8', amenities: ['Ресторан', 'Тэмээ унах', 'Од ажиглах'], aiSummary: 'Говийн байгаль, тэмээ унах, од ажиглах гайхалтай газар.', hostName: 'Ганбат', hostInitials: 'ГБ' },
+  '4': { name: 'Хустайн Рисорт', city: 'Хустай', rating: 4.7, reviews: 215, price: 320000, color: '#B8D4E3', amenities: ['Wi-Fi', 'Ресторан', 'Усан сан', 'Хүүхдийн талбай'], aiSummary: 'Гэр бүлд тохиромжтой, хүүхдийн тоглоомын талбай, морь унах боломжтой.', hostName: 'Сүхбат', hostInitials: 'СБ' },
+  '5': { name: 'Номад Гэстхаус', city: 'Улаанбаатар', rating: 4.3, reviews: 64, price: 55000, color: '#E3D4B8', amenities: ['Wi-Fi', 'Угаалга'], aiSummary: 'Хямд, цэвэрхэн, backpacker-уудад тохиромжтой.', hostName: 'Оюунаа', hostInitials: 'ОА' },
+  '6': { name: 'Блү Скай Хотел', city: 'Улаанбаатар', rating: 4.7, reviews: 298, price: 380000, color: '#B8C4E3', amenities: ['Wi-Fi', 'Ресторан', 'Бар', 'Фитнесс', 'Спа'], aiSummary: 'Хотын төвийн гайхалтай харагдацтай, өндөр зэрэглэлийн үйлчилгээ.', hostName: 'Энхжин', hostInitials: 'ЭЖ' },
+  '7': { name: 'Хөвсгөл Лодж', city: 'Хөвсгөл', rating: 4.9, reviews: 176, price: 210000, color: '#C3D9D5', amenities: ['Ресторан', 'Завь', 'Явган аялал', 'Загас барих'], aiSummary: 'Хөвсгөл нуурын дэргэд, загас барих, завиар аялах гайхалтай боломж.', hostName: 'Батбаяр', hostInitials: 'ББ' },
+  '8': { name: 'Алтай Гэр Кэмп', city: 'Баян-Өлгий', rating: 4.4, reviews: 53, price: 85000, color: '#D9D4C3', amenities: ['Ресторан', 'Бүргэд ажиглах'], aiSummary: 'Казах соёл, бүргэд ажиглах, уулын байгаль.', hostName: 'Айнур', hostInitials: 'АН' },
+  '9': { name: 'Чингис Хаан Хотел', city: 'Улаанбаатар', rating: 4.6, reviews: 410, price: 290000, color: '#E3C4B8', amenities: ['Wi-Fi', 'Ресторан', 'Бар', 'Зогсоол'], aiSummary: 'Түүхэн хотелуудын нэг, хотын төвд байрладаг.', hostName: 'Мөнхбат', hostInitials: 'МБ' },
+  '10': { name: 'Горхи Тэрэлж Рисорт', city: 'Тэрэлж', rating: 4.8, reviews: 192, price: 350000, color: '#C3E3D4', amenities: ['Wi-Fi', 'Ресторан', 'Спа', 'Морь унах', 'Явган аялал'], aiSummary: 'Тэрэлжийн хамгийн шилдэг рисорт. Байгаль, тайвшрал, luxury бүгд нэг дор.', hostName: 'Цэцэг', hostInitials: 'ЦЦ' },
 };
 
-const BLURHASH = 'LKO2:N%2Tw=w]~RBVZRi};RTt7t5';
+const MOCK_REVIEWS = [
+  { id: 'r1', author: 'Ариунзаяа', rating: 5, text: 'Маш гайхалтай газар байлаа! Ажилчид маш найрсаг, өрөө цэвэрхэн.' },
+  { id: 'r2', author: 'Тэмүүлэн', rating: 4, text: 'Байршил маш сайн. Үнэ цэнэ зохимжтой. Дахин очно.' },
+];
 
 export default function HotelDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const haptic = useHaptic();
-  const [hotel, setHotel] = useState<Hotel | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
 
-  // entrance animations
-  const contentTranslateY = useSharedValue(20);
-  const contentOpacity = useSharedValue(0);
-  const heartScale = useSharedValue(1);
-
-  useEffect(() => {
-    if (!id) return;
-    Promise.all([fetchHotelById(id), fetchReviewsByHotel(id)])
-      .then(([h, r]) => {
-        setHotel(h);
-        setReviews(r);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  useEffect(() => {
-    if (!loading && hotel) {
-      contentTranslateY.value = withDelay(100, withSpring(0, easing.out));
-      contentOpacity.value = withDelay(100, withTiming(1, { duration: animation.base }));
-    }
-  }, [loading, hotel]);
-
-  const contentStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: contentTranslateY.value }],
-    opacity: contentOpacity.value,
-  }));
-
-  const heartAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: heartScale.value }],
-  }));
-
-  const toggleLike = () => {
-    haptic.light();
-    if (!liked) {
-      heartScale.value = withSequence(
-        withSpring(1.3, { damping: 8, stiffness: 200 }),
-        withSpring(1, easing.out),
-      );
-    }
-    setLiked(!liked);
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary}
-          style={styles.centerLoader}
-        />
-      </SafeAreaView>
-    );
-  }
-
-  if (!hotel) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.centerLoader}>
-          <Text style={styles.emptyText}>Буудал олдсонгүй</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const hotel = HOTELS[id ?? '1'] ?? HOTELS['1'];
 
   return (
-    <View style={styles.safe}>
-      <ScrollView style={styles.scrollView} bounces={false}>
-        {/* Gallery image */}
-        <View style={styles.gallery}>
-          <Image
-            source={{ uri: hotel.image_url }}
-            placeholder={{ blurhash: BLURHASH }}
-            style={styles.galleryImage}
-            contentFit="cover"
-            transition={300}
-          />
-          {/* Overlay buttons */}
-          <SafeAreaView style={styles.galleryOverlay}>
-            <Pressable
-              style={styles.overlayBtn}
-              onPress={() => router.back()}
-              hitSlop={8}
-            >
-              <ArrowLeft size={20} color="#FFFFFF" strokeWidth={2} />
+    <View style={s.safe}>
+      <ScrollView style={s.scrollView} bounces={false} showsVerticalScrollIndicator={false}>
+        {/* Image Header */}
+        <View style={[s.imageHeader, { backgroundColor: hotel.color }]}>
+          <Text style={s.imageInitial}>{hotel.name.charAt(0)}</Text>
+          <SafeAreaView style={s.overlay}>
+            <Pressable style={s.overlayBtn} onPress={() => router.back()}>
+              <Text style={s.overlayBtnText}>←</Text>
             </Pressable>
-            <Pressable
-              style={styles.overlayBtn}
-              onPress={toggleLike}
-              hitSlop={8}
-            >
-              <Animated.View style={heartAnimStyle}>
-                <Heart
-                  size={20}
-                  color={liked ? '#E24B4A' : '#FFFFFF'}
-                  fill={liked ? '#E24B4A' : 'transparent'}
-                  strokeWidth={2}
-                />
-              </Animated.View>
+            <Pressable style={s.overlayBtn} onPress={() => setLiked(!liked)}>
+              <Text style={s.overlayBtnText}>{liked ? '❤️' : '🤍'}</Text>
             </Pressable>
           </SafeAreaView>
-          {/* Image counter */}
-          <View style={styles.imageCounter}>
-            <Text style={styles.imageCounterText}>
-              1/{hotel.images.length}
-            </Text>
-          </View>
         </View>
 
-        <Animated.View style={[styles.content, contentStyle]}>
-          {/* Title + Verified */}
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{hotel.name}</Text>
-            <Badge label="Баталгаат" variant="teal" />
-          </View>
-          <View style={styles.subtitleRow}>
-            <MapPin size={12} color={colors.textSecondary} strokeWidth={2} />
-            <Text style={styles.subtitle}>
-              {hotel.city}
-            </Text>
-            <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={0} />
-            <Text style={styles.subtitle}>
-              {hotel.avg_rating > 0
-                ? `${hotel.avg_rating} (${hotel.review_count})`
-                : 'Шинэ'}
-            </Text>
+        <View style={s.content}>
+          {/* Name + Rating */}
+          <Text style={s.hotelName}>{hotel.name}</Text>
+          <View style={s.metaRow}>
+            <Text style={s.metaCity}>📍 {hotel.city}</Text>
+            <Text style={s.metaRating}>★ {hotel.rating} ({hotel.reviews})</Text>
           </View>
 
-          {/* Trust card */}
-          <View style={styles.trustCard}>
-            <View style={styles.trustIconWrap}>
-              <ShieldCheck size={18} color="#04342C" strokeWidth={2} />
-            </View>
-            <View style={styles.trustContent}>
-              <Text style={styles.trustLabel}>Баталгаажсан буудал</Text>
-              <Text style={styles.trustText}>
-                Бичиг баримт шалгагдсан, бодит үйл ажиллагаа баталгаажсан
-              </Text>
+          {/* Trust Card */}
+          <View style={s.trustCard}>
+            <Text style={s.trustIcon}>🛡️</Text>
+            <View style={s.trustContent}>
+              <Text style={s.trustTitle}>Баталгаажсан буудал</Text>
+              <Text style={s.trustText}>Бичиг баримт шалгагдсан, бодит үйл ажиллагаа баталгаажсан</Text>
             </View>
           </View>
 
-          {/* Price lock card */}
-          <View style={styles.priceLockCard}>
-            <Lock size={16} color={colors.primary} strokeWidth={2} />
-            <View style={styles.priceLockContent}>
-              <Text style={styles.priceLockLabel}>
-                Үнэ lock — ₮{hotel.price_min.toLocaleString()} хадгалагдана
-              </Text>
-              <Text style={styles.priceLockText}>
-                Энэ үнэ 24 цагийн дотор хүчинтэй
-              </Text>
+          {/* Price Lock Card */}
+          <View style={s.priceLockCard}>
+            <Text style={s.priceLockIcon}>🔒</Text>
+            <View style={s.priceLockContent}>
+              <Text style={s.priceLockTitle}>Үнэ lock — ₮{hotel.price.toLocaleString()} хадгалагдана</Text>
+              <Text style={s.priceLockText}>Энэ үнэ 24 цагийн дотор хүчинтэй</Text>
             </View>
           </View>
 
           {/* Amenities */}
-          <View style={styles.amenities}>
+          <View style={s.amenities}>
             {hotel.amenities.map((a) => (
-              <View key={a} style={styles.amenityPill}>
-                <Text style={styles.amenityText}>
-                  {AMENITY_LABELS[a] ?? a}
-                </Text>
+              <View key={a} style={s.amenityPill}>
+                <Text style={s.amenityText}>{a}</Text>
               </View>
             ))}
           </View>
 
-          {/* AI summary */}
-          <View style={styles.aiCard}>
-            <View style={styles.aiLabelRow}>
-              <Sparkles size={12} color={colors.primary} strokeWidth={2} />
-              <Text style={styles.aiLabel}>AI хураангуй</Text>
-            </View>
-            <Text style={styles.aiText}>
-              Зочид цэвэр байдал, ажилчдын найрсаг хандлагыг өндрөөр
-              үнэлдэг. Wi-Fi заримдаа сул.
-            </Text>
+          {/* AI Summary */}
+          <View style={s.aiCard}>
+            <Text style={s.aiLabel}>✨ AI хураангуй</Text>
+            <Text style={s.aiText}>{hotel.aiSummary}</Text>
           </View>
 
-          {/* Host chat preview */}
-          <View style={styles.hostCard}>
-            <View style={styles.hostRow}>
-              <View style={styles.hostAvatar}>
-                <Text style={styles.hostAvatarText}>ДМ</Text>
+          {/* Host Chat Preview */}
+          <Pressable style={s.hostCard} onPress={() => router.push(`/chat/${id}`)}>
+            <View style={s.hostRow}>
+              <View style={s.hostAvatar}>
+                <Text style={s.hostAvatarText}>{hotel.hostInitials}</Text>
               </View>
-              <View style={styles.hostInfo}>
-                <Text style={styles.hostName}>Хост Дэлгэрмаа</Text>
-                <Text style={styles.hostStatus}>Ихэвчлэн 5 мин-д хариулна</Text>
+              <View style={s.hostInfo}>
+                <Text style={s.hostName}>Хост {hotel.hostName}</Text>
+                <Text style={s.hostStatus}>Ихэвчлэн 5 мин-д хариулна</Text>
               </View>
             </View>
-            <Pressable
-              style={styles.hostChatBtn}
-              onPress={() => {
-                haptic.light();
-                router.push(`/chat/${id}`);
-              }}
-            >
-              <MessageCircle size={16} color={colors.textPrimary} strokeWidth={2} />
-              <Text style={styles.hostChatBtnText}>Чатлах</Text>
-            </Pressable>
-          </View>
+            <View style={s.hostChatBtn}>
+              <Text style={s.hostChatBtnText}>💬 Чатлах</Text>
+            </View>
+          </Pressable>
 
           {/* Reviews */}
-          <Text style={styles.sectionLabel}>Сүүлийн үнэлгээ</Text>
-          {reviews.slice(0, 2).map((review) => (
-            <View key={review.id} style={styles.reviewCard}>
-              <Text style={styles.reviewAuthor}>{review.title}</Text>
-              <Text style={styles.reviewBody}>{review.body}</Text>
+          <Text style={s.sectionLabel}>Сүүлийн үнэлгээ</Text>
+          {MOCK_REVIEWS.map((r) => (
+            <View key={r.id} style={s.reviewCard}>
+              <View style={s.reviewHeader}>
+                <Text style={s.reviewAuthor}>{r.author}</Text>
+                <Text style={s.reviewRating}>{'★'.repeat(r.rating)}</Text>
+              </View>
+              <Text style={s.reviewText}>{r.text}</Text>
             </View>
           ))}
 
-          {/* Bottom spacer for action bar */}
-          <View style={styles.bottomSpacer} />
-        </Animated.View>
+          <View style={{ height: 100 }} />
+        </View>
       </ScrollView>
 
-      {/* Bottom action bar */}
-      <View style={styles.actionBar}>
-        <Pressable
-          style={styles.actionPrimary}
-          onPress={() => {
-            haptic.medium();
-            router.push(`/call/${id}`);
-          }}
-        >
-          <View style={styles.actionRow}>
-            <Phone size={16} color="#FFFFFF" strokeWidth={2} />
-            <Text style={styles.actionPrimaryText}>Залгах · cash</Text>
-          </View>
-          <Text style={styles.actionPrimaryPrice}>
-            ₮{hotel.price_min.toLocaleString()}-
-            {(hotel.price_max / 1000).toFixed(0)}K
-          </Text>
+      {/* Bottom Action Bar */}
+      <View style={s.actionBar}>
+        <Pressable style={s.actionPrimary} onPress={() => router.push(`/call/${id}`)}>
+          <Text style={s.actionPrimaryText}>📞 Залгах</Text>
+          <Text style={s.actionPrimaryPrice}>₮{hotel.price.toLocaleString()}</Text>
         </Pressable>
-        <Pressable style={styles.actionSecondary}>
-          <CreditCard size={16} color={colors.textPrimary} strokeWidth={2} />
-          <Text style={styles.actionSecondaryText}>QPay</Text>
+        <Pressable style={s.actionSecondary} onPress={() => router.push(`/payment/${id}`)}>
+          <Text style={s.actionSecondaryText}>💳 QPay</Text>
         </Pressable>
-        <Pressable
-          style={styles.actionChat}
-          onPress={() => {
-            haptic.light();
-            router.push(`/chat/${id}`);
-          }}
-        >
-          <MessageCircle size={20} color={colors.primary} strokeWidth={2} />
+        <Pressable style={s.actionChat} onPress={() => router.push(`/chat/${id}`)}>
+          <Text style={s.actionChatText}>💬</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F1EFE8',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  centerLoader: {
-    flex: 1,
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#F8F7F3' },
+  scrollView: { flex: 1 },
+  imageHeader: {
+    height: 280,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-
-  // Gallery
-  gallery: {
-    height: 300,
-    position: 'relative',
-    backgroundColor: '#E1F5EE',
-  },
-  galleryImage: {
-    width: '100%',
-    height: '100%',
-  },
-  galleryOverlay: {
+  imageInitial: { fontSize: 72, fontWeight: '700', color: 'rgba(0,0,0,0.1)' },
+  overlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   overlayBtn: {
     width: 44,
@@ -361,297 +171,130 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  imageCounter: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
-  imageCounterText: {
-    fontSize: 11,
-    color: '#FFFFFF',
-  },
-
-  // Content
-  content: {
-    padding: spacing.lg,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  subtitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.lg - 2,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginRight: spacing.sm,
-  },
-
-  // Trust card
+  overlayBtnText: { fontSize: 20, color: '#FFF' },
+  content: { padding: 20 },
+  hotelName: { fontSize: 22, fontWeight: '600', color: '#1A1A1A', marginBottom: 4 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  metaCity: { fontSize: 13, color: '#888' },
+  metaRating: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
   trustCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-    backgroundColor: '#E1F5EE',
-    borderWidth: 0.5,
-    borderColor: '#5DCAA5',
-    borderRadius: radius.md,
-    padding: spacing.md + 1,
-    marginBottom: spacing.md - 2,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    gap: 10,
   },
-  trustIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(4,52,44,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trustContent: {
-    flex: 1,
-  },
-  trustLabel: {
-    fontSize: 13,
-    fontWeight: fontWeights.medium as '500',
-    color: '#04342C',
-    marginBottom: spacing.xs,
-  },
-  trustText: {
-    fontSize: 12,
-    color: '#04342C',
-    lineHeight: 18,
-  },
-
-  // Price lock card
+  trustIcon: { fontSize: 20 },
+  trustContent: { flex: 1 },
+  trustTitle: { fontSize: 13, fontWeight: '600', color: '#04342C', marginBottom: 2 },
+  trustText: { fontSize: 12, color: '#04342C', lineHeight: 18 },
   priceLockCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-    backgroundColor: colors.card,
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: radius.md,
-    padding: spacing.md + 1,
-    marginBottom: spacing.lg - 2,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#EDEDED',
   },
-  priceLockContent: {
-    flex: 1,
-  },
-  priceLockLabel: {
-    fontSize: 14,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  priceLockText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-
-  // Amenities
-  amenities: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: spacing.lg - 2,
-  },
+  priceLockIcon: { fontSize: 18 },
+  priceLockContent: { flex: 1 },
+  priceLockTitle: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  priceLockText: { fontSize: 12, color: '#888' },
+  amenities: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   amenityPill: {
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
+    backgroundColor: '#F3F3F3',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
-  amenityText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-
-  // AI card
+  amenityText: { fontSize: 12, color: '#555' },
   aiCard: {
-    backgroundColor: '#E1F5EE',
-    borderWidth: 0.5,
-    borderColor: '#5DCAA5',
-    borderRadius: radius.md,
-    padding: spacing.md + 1,
-    marginBottom: spacing.lg - 2,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
   },
-  aiLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.sm - 2,
-  },
-  aiLabel: {
-    fontSize: 11,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  aiText: {
-    fontSize: 14,
-    color: '#04342C',
-    lineHeight: 21,
-  },
-
-  // Host card
+  aiLabel: { fontSize: 12, fontWeight: '600', color: '#0F6E56', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  aiText: { fontSize: 14, color: '#04342C', lineHeight: 21 },
   hostCard: {
-    backgroundColor: colors.card,
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: radius.md,
-    padding: spacing.lg - 2,
-    marginBottom: spacing.lg + 2,
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#EDEDED',
   },
-  hostRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md - 2,
-    marginBottom: spacing.md - 2,
-  },
+  hostRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   hostAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E1F5EE',
+    backgroundColor: '#E8F5E9',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hostAvatarText: {
-    fontSize: 14,
-    fontWeight: fontWeights.medium as '500',
-    color: '#04342C',
-  },
-  hostInfo: {
-    flex: 1,
-  },
-  hostName: {
-    fontSize: 14,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-  },
-  hostStatus: {
-    fontSize: 12,
-    color: colors.primary,
-  },
+  hostAvatarText: { fontSize: 14, fontWeight: '600', color: '#04342C' },
+  hostInfo: { flex: 1 },
+  hostName: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  hostStatus: { fontSize: 12, color: '#0F6E56' },
   hostChatBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#F1EFE8',
-    borderRadius: radius.sm,
-    paddingVertical: 10,
-    minHeight: 44,
-  },
-  hostChatBtnText: {
-    fontSize: 14,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-  },
-
-  // Reviews
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: fontWeights.medium as '500',
-    color: '#888780',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.sm,
-  },
-  reviewCard: {
-    backgroundColor: colors.card,
+    backgroundColor: '#F3F3F3',
     borderRadius: 10,
-    padding: spacing.md + 1,
-    marginBottom: spacing.sm,
+    paddingVertical: 10,
+    alignItems: 'center',
   },
-  reviewAuthor: {
-    fontSize: 13,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    marginBottom: 3,
+  hostChatBtnText: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
+  sectionLabel: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 10 },
+  reviewCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
   },
-  reviewBody: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    lineHeight: 19,
-  },
-  bottomSpacer: {
-    height: 80,
-  },
-
-  // Action bar
+  reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  reviewAuthor: { fontSize: 13, fontWeight: '600', color: '#1A1A1A' },
+  reviewRating: { fontSize: 12, color: '#F59E0B' },
+  reviewText: { fontSize: 13, color: '#555', lineHeight: 19 },
   actionBar: {
     flexDirection: 'row',
-    padding: spacing.lg - 2,
-    paddingBottom: 30,
-    backgroundColor: colors.card,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(0,0,0,0.08)',
-    gap: spacing.sm,
+    padding: 16,
+    paddingBottom: 32,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
+    gap: 8,
   },
   actionPrimary: {
     flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    backgroundColor: '#0F6E56',
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  actionPrimaryText: {
-    fontSize: 15,
-    fontWeight: fontWeights.medium as '500',
-    color: '#FFFFFF',
-  },
-  actionPrimaryPrice: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 2,
-  },
+  actionPrimaryText: { fontSize: 15, fontWeight: '600', color: '#FFF' },
+  actionPrimaryPrice: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   actionSecondary: {
     flex: 1,
-    backgroundColor: colors.card,
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.15)',
-    borderRadius: radius.md,
-    paddingVertical: spacing.lg - 2,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
   },
-  actionSecondaryText: {
-    fontSize: 13,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-  },
+  actionSecondaryText: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
   actionChat: {
     width: 54,
-    backgroundColor: colors.card,
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.15)',
-    borderRadius: radius.md,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
   },
+  actionChatText: { fontSize: 20 },
 });

@@ -1,171 +1,186 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
-import { Image } from 'expo-image';
-import { Heart, Star, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, fontWeights, fontSize, spacing, radius } from '@ihotel/config';
-import { TabBar, Button, useHaptic } from '@ihotel/ui';
-import type { TabItem } from '@ihotel/ui';
-import type { Hotel } from '@ihotel/types';
 
-/* ─── constants ─── */
-
-const GUEST_TABS: TabItem[] = [
-  { key: 'search', label: 'Хайх', icon: 'search' },
-  { key: 'ai', label: 'AI', icon: 'sparkles' },
-  { key: 'trips', label: 'Аялал', icon: 'map', badge: '1' },
-  { key: 'saved', label: 'Хадгал.', icon: 'heart' },
-  { key: 'profile', label: 'Профайл', icon: 'user' },
+const INITIAL_SAVED = [
+  { id: '1', name: 'Шангри-Ла Улаанбаатар', city: 'Улаанбаатар', price: 450000, rating: 4.8, color: '#E8D5B7' },
+  { id: '4', name: 'Хустайн Рисорт', city: 'Хустай', price: 320000, rating: 4.7, color: '#B8D4E3' },
+  { id: '7', name: 'Хөвсгөл Лодж', city: 'Хөвсгөл', price: 210000, rating: 4.9, color: '#C3D9D5' },
+  { id: '10', name: 'Горхи Тэрэлж Рисорт', city: 'Тэрэлж', price: 350000, rating: 4.8, color: '#C3E3D4' },
 ];
 
-const MOCK_SAVED: Hotel[] = [
-  {
-    id: 'sv1', name: 'Хангай Resort', description: '', address: '', city: 'Хархорин',
-    latitude: 0, longitude: 0, star_rating: 4, avg_rating: 4.8, review_count: 124,
-    price_min: 280000, price_max: 350000, amenities: [],
-    image_url: 'https://picsum.photos/seed/saved1/400/300', images: [],
-    is_featured: true, created_at: '', updated_at: '',
-  },
-  {
-    id: 'sv2', name: 'Хатгалын Гэр буудал', description: '', address: '', city: 'Хатгал',
-    latitude: 0, longitude: 0, star_rating: 3, avg_rating: 4.7, review_count: 89,
-    price_min: 170000, price_max: 220000, amenities: [],
-    image_url: 'https://picsum.photos/seed/saved2/400/300', images: [],
-    is_featured: false, created_at: '', updated_at: '',
-  },
-  {
-    id: 'sv3', name: 'Тэрэлж Lodge', description: '', address: '', city: 'Тэрэлж',
-    latitude: 0, longitude: 0, star_rating: 4, avg_rating: 4.5, review_count: 56,
-    price_min: 180000, price_max: 240000, amenities: [],
-    image_url: 'https://picsum.photos/seed/saved3/400/300', images: [],
-    is_featured: false, created_at: '', updated_at: '',
-  },
-  {
-    id: 'sv4', name: 'Горхи Camp', description: '', address: '', city: 'Горхи-Тэрэлж',
-    latitude: 0, longitude: 0, star_rating: 3, avg_rating: 4.3, review_count: 34,
-    price_min: 120000, price_max: 160000, amenities: [],
-    image_url: 'https://picsum.photos/seed/saved4/400/300', images: [],
-    is_featured: false, created_at: '', updated_at: '',
-  },
-];
-
-const BLURHASH = 'LKO2:N%2Tw=w]~RBVZRi};RTt7t5';
-
-/* ─── grid card ─── */
-
-function SavedCard({ hotel, onPress, onRemove }: {
-  hotel: Hotel; onPress: () => void; onRemove: () => void;
-}) {
+function TabBar({ active }: { active: string }) {
+  const router = useRouter();
+  const tabs = [
+    { key: 'search', label: '🔍 Хайх', route: '/(guest)/search' as const },
+    { key: 'ai', label: '✨ AI', route: '/(guest)/ai' as const },
+    { key: 'trips', label: '🧳 Аялал', route: '/(guest)/trips' as const },
+    { key: 'saved', label: '❤️ Хадгал', route: '/(guest)/saved' as const },
+    { key: 'profile', label: '👤 Профайл', route: '/(guest)/profile' as const },
+  ];
   return (
-    <Pressable style={gridS.card} onPress={onPress}>
-      <View style={gridS.imageWrap}>
-        <Image source={{ uri: hotel.image_url }} placeholder={{ blurhash: BLURHASH }}
-          style={gridS.image} contentFit="cover" transition={200} />
-        <Pressable style={gridS.removeBtn} onPress={(e) => { e.stopPropagation(); onRemove(); }} hitSlop={8}>
-          <Trash2 size={12} color="#E24B4A" strokeWidth={2} />
+    <View style={tabStyles.bar}>
+      {tabs.map((t) => (
+        <Pressable
+          key={t.key}
+          style={tabStyles.tab}
+          onPress={() => {
+            if (t.key !== active) router.replace(t.route);
+          }}
+        >
+          <Text style={[tabStyles.label, t.key === active && tabStyles.active]}>
+            {t.label}
+          </Text>
         </Pressable>
-      </View>
-      <View style={gridS.info}>
-        <Text style={gridS.name} numberOfLines={1}>{hotel.name}</Text>
-        <Text style={gridS.meta}>{hotel.city}</Text>
-        <View style={gridS.ratingRow}>
-          <Star size={10} color="#F59E0B" fill="#F59E0B" strokeWidth={0} />
-          <Text style={gridS.rating}>{hotel.avg_rating}</Text>
-        </View>
-        <Text style={gridS.price}>₮{(hotel.price_min / 1000).toFixed(0)}K/шөнө</Text>
-      </View>
-    </Pressable>
+      ))}
+    </View>
   );
 }
 
-const gridS = StyleSheet.create({
-  card: {
-    flex: 1, backgroundColor: colors.card, borderRadius: radius.md,
-    borderWidth: 0.5, borderColor: colors.border as string, overflow: 'hidden', margin: spacing.xs,
-  },
-  imageWrap: { position: 'relative' },
-  image: { width: '100%', height: 110 },
-  removeBtn: {
-    position: 'absolute', top: 6, right: 6, width: 28, height: 28, borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center',
-  },
-  info: { padding: spacing.sm, gap: 1 },
-  name: { fontSize: 13, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  meta: { fontSize: 11, color: colors.textSecondary },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  rating: { fontSize: 11, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  price: { fontSize: 13, fontWeight: fontWeights.medium as '500', color: colors.primary, marginTop: 2 },
-});
-
-/* ─── screen ─── */
-
 export default function SavedScreen() {
   const router = useRouter();
-  const haptic = useHaptic();
-  const [saved, setSaved] = useState<Hotel[]>(MOCK_SAVED);
+  const [saved, setSaved] = useState(INITIAL_SAVED);
 
-  const handleRemove = useCallback((id: string) => {
-    haptic.light();
-    setSaved(prev => prev.filter(h => h.id !== id));
-  }, [haptic]);
+  const removeItem = (id: string) => {
+    Alert.alert('Устгах', 'Хадгалсан жагсаалтаас хасах уу?', [
+      { text: 'Үгүй' },
+      { text: 'Тийм', onPress: () => setSaved((prev) => prev.filter((h) => h.id !== id)) },
+    ]);
+  };
 
-  const isEmpty = saved.length === 0;
+  const renderItem = ({ item }: { item: (typeof INITIAL_SAVED)[0] }) => (
+    <Pressable
+      style={s.card}
+      onPress={() => router.push(`/hotel/${item.id}`)}
+    >
+      <View style={[s.cardImage, { backgroundColor: item.color }]}>
+        <Text style={s.cardInitial}>{item.name.charAt(0)}</Text>
+        <Pressable
+          style={s.removeBtn}
+          onPress={() => removeItem(item.id)}
+        >
+          <Text style={s.removeText}>✕</Text>
+        </Pressable>
+      </View>
+      <View style={s.cardBody}>
+        <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
+        <Text style={s.cardCity}>{item.city}</Text>
+        <View style={s.cardRow}>
+          <Text style={s.cardRating}>★ {item.rating}</Text>
+          <Text style={s.cardPrice}>₮{item.price.toLocaleString()}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <Text style={s.title}>Хадгалсан</Text>
-        <Text style={s.subtitle}>{saved.length} буудал</Text>
+        <Text style={s.count}>{saved.length} хотел</Text>
       </View>
 
-      {isEmpty ? (
+      {saved.length === 0 ? (
         <View style={s.empty}>
-          <View style={s.emptyCircle}>
-            <Heart size={48} color={colors.primary} strokeWidth={1.5} />
-          </View>
-          <Text style={s.emptyTitle}>Хоосон байна</Text>
-          <Text style={s.emptyText}>Таалагдсан буудлыг хадгалж дараа амархан олоорой</Text>
-          <Button title="Буудал хайх →" onPress={() => router.replace('/(guest)/search')} />
+          <Text style={s.emptyIcon}>❤️</Text>
+          <Text style={s.emptyTitle}>Хадгалсан зүйл байхгүй</Text>
+          <Text style={s.emptySub}>Таалагдсан хотелуудаа хадгалаарай</Text>
+          <Pressable style={s.emptyBtn} onPress={() => router.replace('/(guest)/search')}>
+            <Text style={s.emptyBtnText}>Хайх</Text>
+          </Pressable>
         </View>
       ) : (
-        <FlashList<Hotel>
+        <FlatList
           data={saved}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
           numColumns={2}
-          renderItem={({ item }) => (
-            <SavedCard hotel={item}
-              onPress={() => { haptic.light(); router.push(`/hotel/${item.id}`); }}
-              onRemove={() => handleRemove(item.id)} />
-          )}
-          keyExtractor={item => item.id}
+          columnWrapperStyle={s.row}
           contentContainerStyle={s.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
-      <TabBar tabs={GUEST_TABS} activeKey="saved"
-        onTabPress={key => {
-          if (key === 'saved') return;
-          if (key === 'search') router.replace('/(guest)/search');
-          else if (key === 'profile') router.push('/(guest)/profile');
-          else if (key === 'ai') router.push('/(guest)/ai');
-          else if (key === 'trips') router.push('/(guest)/trips');
-        }} />
+      <TabBar active="saved" />
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingHorizontal: spacing.lg + 4, paddingTop: spacing.lg, paddingBottom: spacing.md },
-  title: { fontSize: fontSize.h1, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  subtitle: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: 2 },
-  list: { paddingHorizontal: spacing.md },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['2xl'], gap: spacing.md },
-  emptyCircle: {
-    width: 96, height: 96, borderRadius: 48, backgroundColor: '#E1F5EE',
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
+  safe: { flex: 1, backgroundColor: '#F8F7F3' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    marginBottom: 16,
   },
-  emptyTitle: { fontSize: fontSize.h3, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  emptyText: { fontSize: fontSize.body, color: colors.textSecondary, textAlign: 'center' },
+  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },
+  count: { fontSize: 13, color: '#888' },
+  list: { paddingHorizontal: 14, paddingBottom: 16 },
+  row: { justifyContent: 'space-between', marginBottom: 12 },
+  card: {
+    width: '48%',
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  cardImage: {
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardInitial: { fontSize: 36, fontWeight: '700', color: 'rgba(0,0,0,0.12)' },
+  removeBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeText: { fontSize: 13, color: '#FFF', fontWeight: '600' },
+  cardBody: { padding: 10 },
+  cardName: { fontSize: 13, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  cardCity: { fontSize: 11, color: '#888', marginBottom: 6 },
+  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardRating: { fontSize: 12, fontWeight: '600', color: '#F59E0B' },
+  cardPrice: { fontSize: 12, fontWeight: '600', color: '#0F6E56' },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A', marginBottom: 6 },
+  emptySub: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 20 },
+  emptyBtn: {
+    backgroundColor: '#0F6E56',
+    borderRadius: 12,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+  },
+  emptyBtnText: { fontSize: 15, fontWeight: '500', color: '#FFF' },
+});
+
+const tabStyles = StyleSheet.create({
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 4 },
+  label: { fontSize: 11, color: '#999' },
+  active: { color: '#0F6E56', fontWeight: '600' },
 });

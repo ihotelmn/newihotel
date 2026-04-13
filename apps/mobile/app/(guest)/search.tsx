@@ -1,616 +1,227 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
   ScrollView,
+  FlatList,
   Pressable,
   StyleSheet,
   SafeAreaView,
-  RefreshControl,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
-import { FlashList } from '@shopify/flash-list';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import {
-  Search as SearchIcon,
-  X,
-  Sparkles,
-  LayoutGrid,
-  Building2,
-  Home,
-  Hotel,
-  Tent,
-  SearchX,
-} from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { toast } from 'sonner-native';
-import { HotelCard, Pill, TabBar, Button } from '@ihotel/ui';
-import type { TabItem } from '@ihotel/ui';
-import { useHaptic } from '@ihotel/ui';
-import { fetchHotels, searchHotels } from '@ihotel/api';
-import { useDebounce, useAsyncData } from '@ihotel/hooks';
-import {
-  colors,
-  radius,
-  fontWeights,
-  spacing,
-  animation,
-  easing,
-} from '@ihotel/config';
-import type { Hotel as HotelType } from '@ihotel/types';
-
-/* ─── constants ─── */
 
 const CATEGORIES = [
-  { label: 'Бүгд', Icon: LayoutGrid },
-  { label: 'Resort', Icon: Building2 },
-  { label: 'Гэр буудал', Icon: Home },
-  { label: 'Hotel', Icon: Hotel },
-  { label: 'Camp', Icon: Tent },
-] as const;
-
-const SORT_OPTIONS = [
-  '✨ AI санал',
-  'Хямдаас',
-  'Рейтинг',
-  'Ойр',
-  '✓ Verified',
-] as const;
-
-const GUEST_TABS: TabItem[] = [
-  { key: 'search', label: 'Хайх', icon: 'search' },
-  { key: 'ai', label: 'AI', icon: 'sparkles' },
-  { key: 'trips', label: 'Аялал', icon: 'map', badge: '1' },
-  { key: 'saved', label: 'Хадгал.', icon: 'heart' },
-  { key: 'profile', label: 'Профайл', icon: 'user' },
+  { id: 'all', label: 'Бүгд' },
+  { id: 'city', label: 'Хотын' },
+  { id: 'nature', label: 'Байгаль' },
+  { id: 'ger', label: 'Гэр буудал' },
+  { id: 'resort', label: 'Рисорт' },
+  { id: 'budget', label: 'Хямд' },
 ];
 
-/* ─── skeleton loader ─── */
+const HOTELS = [
+  { id: '1', name: 'Шангри-Ла Улаанбаатар', city: 'Улаанбаатар', price: 450000, rating: 4.8, reviews: 342, cat: 'city', color: '#E8D5B7' },
+  { id: '2', name: 'Тэрэлж Лодж', city: 'Тэрэлж', price: 180000, rating: 4.6, reviews: 128, cat: 'nature', color: '#C5D9C3' },
+  { id: '3', name: 'Говийн Гэр Кэмп', city: 'Өмнөговь', price: 95000, rating: 4.5, reviews: 87, cat: 'ger', color: '#D4C4A8' },
+  { id: '4', name: 'Хустайн Рисорт', city: 'Хустай', price: 320000, rating: 4.7, reviews: 215, cat: 'resort', color: '#B8D4E3' },
+  { id: '5', name: 'Номад Гэстхаус', city: 'Улаанбаатар', price: 55000, rating: 4.3, reviews: 64, cat: 'budget', color: '#E3D4B8' },
+  { id: '6', name: 'Блү Скай Хотел', city: 'Улаанбаатар', price: 380000, rating: 4.7, reviews: 298, cat: 'city', color: '#B8C4E3' },
+  { id: '7', name: 'Хөвсгөл Лодж', city: 'Хөвсгөл', price: 210000, rating: 4.9, reviews: 176, cat: 'nature', color: '#C3D9D5' },
+  { id: '8', name: 'Алтай Гэр Кэмп', city: 'Баян-Өлгий', price: 85000, rating: 4.4, reviews: 53, cat: 'ger', color: '#D9D4C3' },
+  { id: '9', name: 'Чингис Хаан Хотел', city: 'Улаанбаатар', price: 290000, rating: 4.6, reviews: 410, cat: 'city', color: '#E3C4B8' },
+  { id: '10', name: 'Горхи Тэрэлж Рисорт', city: 'Тэрэлж', price: 350000, rating: 4.8, reviews: 192, cat: 'resort', color: '#C3E3D4' },
+];
 
-function CardSkeleton() {
+function TabBar({ active }: { active: string }) {
+  const router = useRouter();
+  const tabs = [
+    { key: 'search', label: '🔍 Хайх', route: '/(guest)/search' as const },
+    { key: 'ai', label: '✨ AI', route: '/(guest)/ai' as const },
+    { key: 'trips', label: '🧳 Аялал', route: '/(guest)/trips' as const },
+    { key: 'saved', label: '❤️ Хадгал', route: '/(guest)/saved' as const },
+    { key: 'profile', label: '👤 Профайл', route: '/(guest)/profile' as const },
+  ];
   return (
-    <SkeletonPlaceholder borderRadius={radius.md}>
-      <SkeletonPlaceholder.Item
-        flexDirection="row"
-        alignItems="center"
-        padding={spacing.md}
-        gap={spacing.md}
-      >
-        <SkeletonPlaceholder.Item width={88} height={88} borderRadius={radius.md} />
-        <SkeletonPlaceholder.Item flex={1} gap={8}>
-          <SkeletonPlaceholder.Item width="80%" height={16} />
-          <SkeletonPlaceholder.Item width="50%" height={12} />
-          <SkeletonPlaceholder.Item width="40%" height={12} />
-          <SkeletonPlaceholder.Item width="35%" height={16} />
-        </SkeletonPlaceholder.Item>
-      </SkeletonPlaceholder.Item>
-    </SkeletonPlaceholder>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <View style={skeletonStyles.wrap}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <View key={i} style={skeletonStyles.card}>
-          <CardSkeleton />
-        </View>
+    <View style={tabStyles.bar}>
+      {tabs.map((t) => (
+        <Pressable
+          key={t.key}
+          style={tabStyles.tab}
+          onPress={() => {
+            if (t.key !== active) router.replace(t.route);
+          }}
+        >
+          <Text style={[tabStyles.label, t.key === active && tabStyles.active]}>
+            {t.label}
+          </Text>
+        </Pressable>
       ))}
     </View>
   );
 }
 
-const skeletonStyles = StyleSheet.create({
-  wrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    borderWidth: 0.5,
-    borderColor: colors.border as string,
-    overflow: 'hidden',
-  },
-});
-
-/* ─── empty state ─── */
-
-function EmptyState({ onReset }: { onReset: () => void }) {
-  return (
-    <View style={emptyStyles.wrap}>
-      <View style={emptyStyles.iconCircle}>
-        <SearchX size={48} color={colors.primary} strokeWidth={1.5} />
-      </View>
-      <Text style={emptyStyles.title}>Тохирох буудал олдсонгүй</Text>
-      <Text style={emptyStyles.subtitle}>Шүүлтүүрээ өөрчилж үзээрэй</Text>
-      <Button title="Шүүлт цэвэрлэх" variant="ghost" onPress={onReset} />
-    </View>
-  );
-}
-
-const emptyStyles = StyleSheet.create({
-  wrap: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: spacing['2xl'],
-    gap: spacing.md,
-  },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#E1F5EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-    opacity: 0.6,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-});
-
-/* ─── search screen ─── */
-
 export default function SearchScreen() {
   const router = useRouter();
-  const haptic = useHaptic();
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
 
-  const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(0);
-  const [activeSort, setActiveSort] = useState(0);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
+  const filtered = HOTELS.filter((h) => {
+    const matchCat = category === 'all' || h.cat === category;
+    const matchSearch =
+      search === '' ||
+      h.name.toLowerCase().includes(search.toLowerCase()) ||
+      h.city.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
-  const debouncedQuery = useDebounce(query, 300);
-
-  const { data: allHotels, loading, refetch } = useAsyncData(
-    () => (debouncedQuery ? searchHotels(debouncedQuery) : fetchHotels()),
-    [debouncedQuery],
-  );
-
-  // blur header on scroll
-  const scrollY = useSharedValue(0);
-
-  const blurOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, 20, 40], [0, 0, 1], Extrapolation.CLAMP),
-  }));
-
-  // AI banner slide-down
-  const bannerTranslateY = useSharedValue(-30);
-  useEffect(() => {
-    bannerTranslateY.value = withSpring(0, easing.outSoft);
-  }, []);
-  const bannerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: bannerTranslateY.value }],
-  }));
-
-  // filter logic
-  const hotels = useMemo(() => {
-    if (!allHotels) return [];
-    let filtered = [...allHotels];
-
-    const cat = CATEGORIES[activeCategory]?.label;
-    if (cat === 'Resort') {
-      filtered = filtered.filter(
-        (h) =>
-          h.name.toLowerCase().includes('resort') ||
-          h.name.toLowerCase().includes('ресорт'),
-      );
-    } else if (cat === 'Гэр буудал') {
-      filtered = filtered.filter(
-        (h) =>
-          h.name.toLowerCase().includes('гэр') ||
-          h.name.toLowerCase().includes('кэмп') ||
-          h.name.toLowerCase().includes('camp'),
-      );
-    } else if (cat === 'Hotel') {
-      filtered = filtered.filter(
-        (h) =>
-          h.name.toLowerCase().includes('отель') ||
-          h.name.toLowerCase().includes('hotel'),
-      );
-    } else if (cat === 'Camp') {
-      filtered = filtered.filter(
-        (h) =>
-          h.name.toLowerCase().includes('кэмп') ||
-          h.name.toLowerCase().includes('camp') ||
-          h.name.toLowerCase().includes('глампинг'),
-      );
-    }
-
-    const sort = SORT_OPTIONS[activeSort];
-    if (sort === 'Хямдаас') {
-      filtered.sort((a, b) => a.price_min - b.price_min);
-    } else if (sort === 'Рейтинг') {
-      filtered.sort((a, b) => b.avg_rating - a.avg_rating);
-    }
-
-    return filtered;
-  }, [allHotels, activeCategory, activeSort]);
-
-  const handleToggleSave = useCallback((id: string) => {
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-    toast('Шинэчилэв ✓', { duration: 2000 });
-  }, [refetch]);
-
-  const handleResetFilters = useCallback(() => {
-    setActiveCategory(0);
-    setActiveSort(0);
-    setQuery('');
-  }, []);
-
-  const renderHotelItem = useCallback(
-    ({ item }: { item: HotelType }) => (
-      <HotelCard
-        hotel={item}
-        saved={savedIds.has(item.id)}
+  const renderHotel = useCallback(
+    ({ item }: { item: (typeof HOTELS)[0] }) => (
+      <Pressable
+        style={s.card}
         onPress={() => router.push(`/hotel/${item.id}`)}
-        onToggleSave={handleToggleSave}
-      />
+      >
+        <View style={[s.cardImage, { backgroundColor: item.color }]}>
+          <Text style={s.cardImageText}>{item.name.charAt(0)}</Text>
+        </View>
+        <View style={s.cardBody}>
+          <Text style={s.cardName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={s.cardCity}>{item.city}</Text>
+          <View style={s.cardRow}>
+            <Text style={s.cardRating}>★ {item.rating}</Text>
+            <Text style={s.cardReviews}>({item.reviews})</Text>
+          </View>
+          <Text style={s.cardPrice}>
+            ₮{item.price.toLocaleString()}
+            <Text style={s.cardNight}> /шөнө</Text>
+          </Text>
+        </View>
+      </Pressable>
     ),
-    [savedIds, handleToggleSave],
+    [router],
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header with blur */}
-      <View style={styles.headerWrap}>
-        <Animated.View style={[StyleSheet.absoluteFill, blurOpacity]}>
-          <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
-        </Animated.View>
-        <View style={styles.header}>
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerLabel}>Хайлт</Text>
-            <Text style={styles.headerTitle}>Хархорин · 2 хүн · 2 шөнө</Text>
-          </View>
-          <Pressable
-            style={styles.aiBtn}
-            onPress={() => toast('AI туслах удахгүй...', { duration: 2000 })}
-          >
-            <Sparkles size={18} color="#FFFFFF" strokeWidth={2} />
-          </Pressable>
-        </View>
+    <SafeAreaView style={s.safe}>
+      <View style={s.header}>
+        <Text style={s.greeting}>Сайн байна уу! 👋</Text>
+        <Text style={s.title}>Хаашаа аялах вэ?</Text>
+      </View>
 
-        {/* Search bar */}
-        <View style={styles.searchBarWrap}>
-          <View
-            style={[
-              styles.searchBar,
-              searchFocused && styles.searchBarFocused,
-            ]}
-          >
-            <SearchIcon size={16} color="#888780" strokeWidth={2} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Буудлын нэрээр хайх..."
-              placeholderTextColor="#888780"
-              value={query}
-              onChangeText={setQuery}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              autoCapitalize="none"
-            />
-            {query.length > 0 && (
-              <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                <X size={14} color="#888780" strokeWidth={2} />
-              </Pressable>
-            )}
-          </View>
-        </View>
+      <View style={s.searchBox}>
+        <Text style={s.searchIcon}>🔍</Text>
+        <TextInput
+          style={s.searchInput}
+          placeholder="Хотел, газар хайх..."
+          placeholderTextColor="#999"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
 
-        {/* Category row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryRow}
-        >
-          {CATEGORIES.map((cat, i) => {
-            const isActive = activeCategory === i;
-            return (
-              <Pressable
-                key={cat.label}
-                style={styles.categoryItem}
-                onPress={() => {
-                  haptic.light();
-                  setActiveCategory(i);
-                }}
+      <View style={s.catRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {CATEGORIES.map((c) => (
+            <Pressable
+              key={c.id}
+              style={[s.catPill, category === c.id && s.catPillActive]}
+              onPress={() => setCategory(c.id)}
+            >
+              <Text
+                style={[s.catText, category === c.id && s.catTextActive]}
               >
-                <cat.Icon
-                  size={20}
-                  color={isActive ? colors.primary : '#888780'}
-                  strokeWidth={isActive ? 2.2 : 1.8}
-                  style={{ opacity: isActive ? 1 : 0.5 }}
-                />
-                <Text
-                  style={[
-                    styles.categoryLabel,
-                    isActive && styles.categoryLabelActive,
-                  ]}
-                >
-                  {cat.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* Sort pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pillRow}
-        >
-          {SORT_OPTIONS.map((opt, i) => (
-            <Pill
-              key={opt}
-              label={opt}
-              active={activeSort === i}
-              onPress={() => setActiveSort(i)}
-            />
+                {c.label}
+              </Text>
+            </Pressable>
           ))}
         </ScrollView>
       </View>
 
-      {/* AI banner */}
-      <Animated.View style={[styles.aiBanner, bannerStyle]}>
-        <Sparkles size={14} color="#04342C" strokeWidth={2} />
-        <Text style={styles.aiBannerText}>
-          AI таны хайлтад тохируулан эрэмбэлсэн
-        </Text>
-      </Animated.View>
-
-      {/* View toggle */}
-      <View style={styles.viewToggle}>
-        <Pressable
-          style={[styles.toggleBtn, viewMode === 'list' && styles.toggleActive]}
-          onPress={() => setViewMode('list')}
-        >
-          <Text
-            style={[
-              styles.toggleText,
-              viewMode === 'list' && styles.toggleTextActive,
-            ]}
-          >
-            Жагсаалт
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.toggleBtn, viewMode === 'map' && styles.toggleActive]}
-          onPress={() => {
-            setViewMode('map');
-            toast('Газрын зураг удахгүй...', { duration: 2000 });
-          }}
-        >
-          <Text
-            style={[
-              styles.toggleText,
-              viewMode === 'map' && styles.toggleTextActive,
-            ]}
-          >
-            Газрын зураг
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Hotel list */}
-      {loading ? (
-        <LoadingSkeleton />
-      ) : (
-        <FlashList<HotelType>
-          data={hotels}
-          renderItem={renderHotelItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<EmptyState onReset={handleResetFilters} />}
-          onScroll={(e) => {
-            scrollY.value = e.nativeEvent.contentOffset.y;
-          }}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary}
-            />
-          }
-        />
-      )}
-
-      {/* Bottom tab bar */}
-      <TabBar
-        tabs={GUEST_TABS}
-        activeKey="search"
-        onTabPress={(key) => {
-          if (key === 'search') return;
-          if (key === 'profile') router.push('/(guest)/profile');
-          else if (key === 'ai') router.push('/(guest)/ai');
-          else if (key === 'trips') router.push('/(guest)/trips');
-          else if (key === 'saved') router.push('/(guest)/saved');
-        }}
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={renderHotel}
+        contentContainerStyle={s.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={s.empty}>
+            <Text style={s.emptyText}>Илэрц олдсонгүй</Text>
+          </View>
+        }
       />
+
+      <TabBar active="search" />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F1EFE8',
-  },
-
-  /* header */
-  headerWrap: {
-    backgroundColor: colors.card,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
-    overflow: 'hidden',
-  },
-  header: {
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#F8F7F3' },
+  header: { paddingHorizontal: 20, paddingTop: 12 },
+  greeting: { fontSize: 14, color: '#888', marginBottom: 2 },
+  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 12 },
+  searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg + 4,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+    marginBottom: 12,
   },
-  headerInfo: {
-    flex: 1,
+  searchIcon: { fontSize: 16, marginRight: 8 },
+  searchInput: { flex: 1, fontSize: 15, color: '#1A1A1A' },
+  catRow: { paddingLeft: 20, marginBottom: 8 },
+  catPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFF',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
-  headerLabel: {
-    fontSize: 11,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  catPillActive: { backgroundColor: '#0F6E56', borderColor: '#0F6E56' },
+  catText: { fontSize: 13, color: '#555' },
+  catTextActive: { color: '#FFF', fontWeight: '600' },
+  list: { paddingHorizontal: 20, paddingBottom: 16 },
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    marginBottom: 14,
+    overflow: 'hidden',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textPrimary,
-    marginTop: 2,
-  },
-  aiBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+  cardImage: {
+    height: 160,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cardImageText: { fontSize: 48, fontWeight: '700', color: 'rgba(0,0,0,0.15)' },
+  cardBody: { padding: 14 },
+  cardName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  cardCity: { fontSize: 13, color: '#888', marginBottom: 6 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  cardRating: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
+  cardReviews: { fontSize: 12, color: '#999', marginLeft: 4 },
+  cardPrice: { fontSize: 17, fontWeight: '700', color: '#0F6E56' },
+  cardNight: { fontSize: 13, fontWeight: '400', color: '#888' },
+  empty: { alignItems: 'center', paddingTop: 60 },
+  emptyText: { fontSize: 15, color: '#999' },
+});
 
-  /* search bar */
-  searchBarWrap: {
-    paddingHorizontal: spacing.lg - 2,
-    paddingBottom: spacing.sm,
-  },
-  searchBar: {
+const tabStyles = StyleSheet.create({
+  bar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.1)',
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm,
-    height: 44,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
+    paddingBottom: 20,
+    paddingTop: 8,
   },
-  searchBarFocused: {
-    borderColor: colors.primary,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.textPrimary,
-    paddingVertical: 0,
-  },
-
-  /* categories */
-  categoryRow: {
-    paddingHorizontal: spacing.lg - 2,
-    paddingVertical: spacing.sm,
-    gap: spacing.xl,
-  },
-  categoryItem: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  categoryLabel: {
-    fontSize: 11,
-    color: '#888780',
-    opacity: 0.5,
-  },
-  categoryLabelActive: {
-    color: colors.primary,
-    fontWeight: fontWeights.medium as '500',
-    opacity: 1,
-  },
-
-  /* pills */
-  pillRow: {
-    paddingHorizontal: spacing.lg - 2,
-    paddingVertical: spacing.sm,
-    gap: 6,
-  },
-
-  /* AI banner */
-  aiBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#E1F5EE',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 9,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#5DCAA5',
-  },
-  aiBannerText: {
-    fontSize: 12,
-    fontWeight: fontWeights.medium as '500',
-    color: '#04342C',
-  },
-
-  /* view toggle */
-  viewToggle: {
-    flexDirection: 'row',
-    backgroundColor: '#F1EFE8',
-    borderRadius: radius.pill,
-    padding: 4,
-    marginHorizontal: spacing.lg,
-    marginTop: 14,
-    marginBottom: spacing.md,
-    gap: 2,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    borderRadius: radius.pill,
-  },
-  toggleActive: {
-    backgroundColor: colors.card,
-  },
-  toggleText: {
-    fontSize: 12,
-    fontWeight: fontWeights.medium as '500',
-    color: colors.textSecondary,
-  },
-  toggleTextActive: {
-    color: colors.textPrimary,
-  },
-
-  /* list */
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.lg,
-  },
-  separator: {
-    height: spacing.sm,
-  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 4 },
+  label: { fontSize: 11, color: '#999' },
+  active: { color: '#0F6E56', fontWeight: '600' },
 });

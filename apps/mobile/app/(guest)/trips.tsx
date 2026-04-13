@@ -1,245 +1,229 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
 import {
-  MessageCircle,
-  Navigation,
-  AlertCircle,
-  Star,
-  Luggage,
-} from 'lucide-react-native';
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, fontWeights, fontSize, spacing, radius } from '@ihotel/config';
-import { TabBar, Button, useHaptic } from '@ihotel/ui';
-import type { TabItem } from '@ihotel/ui';
 
-/* ─── constants ─── */
+const UPCOMING = {
+  id: '1',
+  hotel: 'Шангри-Ла Улаанбаатар',
+  city: 'Улаанбаатар',
+  dates: '2026.04.20 — 04.22',
+  nights: 2,
+  guests: '2 том, 1 хүүхэд',
+  price: 900000,
+  status: 'Баталгаажсан',
+  daysLeft: 7,
+  color: '#E8D5B7',
+};
 
-const GUEST_TABS: TabItem[] = [
-  { key: 'search', label: 'Хайх', icon: 'search' },
-  { key: 'ai', label: 'AI', icon: 'sparkles' },
-  { key: 'trips', label: 'Аялал', icon: 'map', badge: '1' },
-  { key: 'saved', label: 'Хадгал.', icon: 'heart' },
-  { key: 'profile', label: 'Профайл', icon: 'user' },
-];
-
-interface BookingMock {
-  id: string;
-  hotelName: string;
-  city: string;
-  dateRange: string;
-  roomType: string;
-  image: string;
-  daysUntil?: number;
-  reviewed?: boolean;
-}
-
-const UPCOMING: BookingMock[] = [
+const PAST = [
   {
-    id: 'b1',
-    hotelName: 'Хангай Resort',
-    city: 'Хархорин',
-    dateRange: '4-р сарын 20 — 22',
-    roomType: 'Deluxe · 2 хүн',
-    image: 'https://picsum.photos/seed/hangai1/200/200',
-    daysUntil: 7,
-  },
-];
-
-const PAST: BookingMock[] = [
-  {
-    id: 'b2',
-    hotelName: 'Тэрэлж Lodge',
+    id: '2',
+    hotel: 'Тэрэлж Лодж',
     city: 'Тэрэлж',
-    dateRange: '3-р сарын 10 — 12',
-    roomType: 'Standard · 2 хүн',
-    image: 'https://picsum.photos/seed/terelj2/200/200',
-    reviewed: false,
+    dates: '2026.03.10 — 03.12',
+    nights: 2,
+    price: 360000,
+    hasReview: false,
+    color: '#C5D9C3',
   },
   {
-    id: 'b3',
-    hotelName: 'Горхи Гэр буудал',
-    city: 'Горхи-Тэрэлж',
-    dateRange: '2-р сарын 5 — 7',
-    roomType: 'Гэр · 4 хүн',
-    image: 'https://picsum.photos/seed/gorkhi3/200/200',
-    reviewed: true,
+    id: '3',
+    hotel: 'Хөвсгөл Лодж',
+    city: 'Хөвсгөл',
+    dates: '2025.08.15 — 08.18',
+    nights: 3,
+    price: 630000,
+    hasReview: true,
+    color: '#C3D9D5',
   },
 ];
 
-/* ─── booking card ─── */
-
-function BookingCard({
-  booking,
-  upcoming,
-  onChat,
-  onReview,
-}: {
-  booking: BookingMock;
-  upcoming?: boolean;
-  onChat?: () => void;
-  onReview?: () => void;
-}) {
+function TabBar({ active }: { active: string }) {
+  const router = useRouter();
+  const tabs = [
+    { key: 'search', label: '🔍 Хайх', route: '/(guest)/search' as const },
+    { key: 'ai', label: '✨ AI', route: '/(guest)/ai' as const },
+    { key: 'trips', label: '🧳 Аялал', route: '/(guest)/trips' as const },
+    { key: 'saved', label: '❤️ Хадгал', route: '/(guest)/saved' as const },
+    { key: 'profile', label: '👤 Профайл', route: '/(guest)/profile' as const },
+  ];
   return (
-    <View style={cardS.card}>
-      <View style={cardS.row}>
-        <Image
-          source={{ uri: booking.image }}
-          style={cardS.image}
-          contentFit="cover"
-          transition={200}
-        />
-        <View style={cardS.info}>
-          <Text style={cardS.name} numberOfLines={1}>{booking.hotelName}</Text>
-          <Text style={cardS.meta}>{booking.dateRange} · {booking.city}</Text>
-          <Text style={cardS.meta}>{booking.roomType}</Text>
-          {upcoming && booking.daysUntil != null && (
-            <View style={cardS.pill}>
-              <Text style={cardS.pillText}>{booking.daysUntil} хоногийн дараа</Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {upcoming && (
-        <View style={cardS.actions}>
-          <Pressable style={cardS.actionBtn} onPress={onChat}>
-            <MessageCircle size={14} color={colors.primary} strokeWidth={2} />
-            <Text style={cardS.actionText}>Хосттой чат</Text>
-          </Pressable>
-          <Pressable style={cardS.actionBtn}>
-            <Navigation size={14} color={colors.primary} strokeWidth={2} />
-            <Text style={cardS.actionText}>Зам заах</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {!upcoming && !booking.reviewed && (
-        <Pressable style={cardS.reviewCta} onPress={onReview}>
-          <Star size={14} color="#D97706" strokeWidth={2} />
-          <Text style={cardS.reviewText}>Үнэлгээ өгөх → +30 оноо</Text>
+    <View style={tabStyles.bar}>
+      {tabs.map((t) => (
+        <Pressable
+          key={t.key}
+          style={tabStyles.tab}
+          onPress={() => {
+            if (t.key !== active) router.replace(t.route);
+          }}
+        >
+          <Text style={[tabStyles.label, t.key === active && tabStyles.active]}>
+            {t.label}
+          </Text>
         </Pressable>
-      )}
+      ))}
     </View>
   );
 }
 
-const cardS = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card, borderRadius: radius.lg,
-    borderWidth: 0.5, borderColor: colors.border as string,
-    overflow: 'hidden', marginBottom: spacing.md,
-  },
-  row: { flexDirection: 'row', padding: spacing.lg - 2, gap: spacing.md },
-  image: { width: 64, height: 64, borderRadius: radius.md },
-  info: { flex: 1, gap: 2 },
-  name: { fontSize: 15, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  meta: { fontSize: fontSize.caption, color: colors.textSecondary },
-  pill: {
-    backgroundColor: '#E1F5EE', borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm, paddingVertical: 2, alignSelf: 'flex-start', marginTop: spacing.xs,
-  },
-  pillText: { fontSize: 11, fontWeight: fontWeights.medium as '500', color: colors.primary },
-  actions: {
-    flexDirection: 'row', gap: spacing.sm,
-    paddingHorizontal: spacing.lg - 2, paddingBottom: spacing.md,
-  },
-  actionBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: spacing.sm, backgroundColor: '#F1EFE8', borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2, minHeight: 44,
-  },
-  actionText: { fontSize: 13, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
-  reviewCta: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: spacing.sm, backgroundColor: '#FEF3C7', paddingVertical: spacing.sm + 2,
-    minHeight: 44,
-  },
-  reviewText: { fontSize: 13, fontWeight: fontWeights.medium as '500', color: '#D97706' },
-});
-
-/* ─── screen ─── */
-
 export default function TripsScreen() {
   const router = useRouter();
-  const haptic = useHaptic();
-  const hasBookings = UPCOMING.length > 0 || PAST.length > 0;
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <Text style={s.title}>Миний аялал</Text>
 
-        {!hasBookings ? (
-          <View style={s.empty}>
-            <View style={s.emptyCircle}>
-              <Luggage size={48} color={colors.primary} strokeWidth={1.5} />
+        <Text style={s.sectionTitle}>Удахгүй</Text>
+        <Pressable
+          style={s.upcomingCard}
+          onPress={() => router.push(`/hotel/${UPCOMING.id}`)}
+        >
+          <View style={[s.upcomingImage, { backgroundColor: UPCOMING.color }]}>
+            <View style={s.badge}>
+              <Text style={s.badgeText}>{UPCOMING.daysLeft} хоногийн дараа</Text>
             </View>
-            <Text style={s.emptyTitle}>Аялал хараахан байхгүй</Text>
-            <Button title="Хайлт эхлэх" onPress={() => router.replace('/(guest)/search')} />
           </View>
-        ) : (
-          <>
-            {UPCOMING.length > 0 && (
-              <>
-                <Text style={s.sectionLabel}>Удахгүй</Text>
-                {UPCOMING.map(b => (
-                  <React.Fragment key={b.id}>
-                    <BookingCard booking={b} upcoming
-                      onChat={() => { haptic.light(); router.push(`/chat/${b.id}`); }} />
-                    <View style={s.emergencyBar}>
-                      <AlertCircle size={14} color="#FFFFFF" strokeWidth={2} />
-                      <Text style={s.emergencyText}>Онцгой нөхцөл? iHotel 24/7: 7555-0000</Text>
-                    </View>
-                  </React.Fragment>
-                ))}
-              </>
-            )}
+          <View style={s.upcomingBody}>
+            <Text style={s.upcomingName}>{UPCOMING.hotel}</Text>
+            <Text style={s.upcomingCity}>{UPCOMING.city}</Text>
+            <Text style={s.upcomingDates}>{UPCOMING.dates} · {UPCOMING.nights} шөнө</Text>
+            <Text style={s.upcomingGuests}>{UPCOMING.guests}</Text>
+            <View style={s.upcomingActions}>
+              <Pressable
+                style={s.actionBtn}
+                onPress={() => router.push(`/chat/${UPCOMING.id}`)}
+              >
+                <Text style={s.actionBtnText}>💬 Чат</Text>
+              </Pressable>
+              <Pressable
+                style={s.actionBtn}
+                onPress={() => router.push(`/hotel/${UPCOMING.id}`)}
+              >
+                <Text style={s.actionBtnText}>📍 Дэлгэрэнгүй</Text>
+              </Pressable>
+            </View>
+            <View style={s.statusRow}>
+              <View style={s.statusDot} />
+              <Text style={s.statusText}>{UPCOMING.status}</Text>
+              <Text style={s.upcomingPrice}>₮{UPCOMING.price.toLocaleString()}</Text>
+            </View>
+          </View>
+        </Pressable>
 
-            {PAST.length > 0 && (
-              <>
-                <Text style={[s.sectionLabel, { marginTop: spacing.xl }]}>Өмнөх</Text>
-                {PAST.map(b => (
-                  <BookingCard key={b.id} booking={b}
-                    onReview={() => { haptic.light(); router.push(`/review/${b.id}`); }} />
-                ))}
-              </>
-            )}
-          </>
-        )}
+        <Text style={s.sectionTitle}>Өмнөх аялалууд</Text>
+        {PAST.map((trip) => (
+          <View key={trip.id} style={s.pastCard}>
+            <View style={[s.pastImage, { backgroundColor: trip.color }]}>
+              <Text style={s.pastInitial}>{trip.hotel.charAt(0)}</Text>
+            </View>
+            <View style={s.pastBody}>
+              <Text style={s.pastName}>{trip.hotel}</Text>
+              <Text style={s.pastDates}>{trip.dates} · {trip.nights} шөнө</Text>
+              <Text style={s.pastPrice}>₮{trip.price.toLocaleString()}</Text>
+              {!trip.hasReview && (
+                <Pressable
+                  style={s.reviewBtn}
+                  onPress={() => router.push(`/review/${trip.id}`)}
+                >
+                  <Text style={s.reviewBtnText}>Үнэлгээ өгөх ★</Text>
+                </Pressable>
+              )}
+              {trip.hasReview && (
+                <Text style={s.reviewed}>✓ Үнэлгээ өгсөн</Text>
+              )}
+            </View>
+          </View>
+        ))}
+
+        <View style={{ height: 24 }} />
       </ScrollView>
-
-      <TabBar tabs={GUEST_TABS} activeKey="trips"
-        onTabPress={key => {
-          if (key === 'trips') return;
-          if (key === 'search') router.replace('/(guest)/search');
-          else if (key === 'profile') router.push('/(guest)/profile');
-          else if (key === 'ai') router.push('/(guest)/ai');
-          else if (key === 'saved') router.push('/(guest)/saved');
-        }} />
+      <TabBar active="trips" />
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { paddingHorizontal: spacing.lg + 4, paddingTop: spacing.lg, paddingBottom: spacing.xl },
-  title: { fontSize: fontSize.h1, fontWeight: fontWeights.medium as '500', color: colors.textPrimary, marginBottom: spacing.xl },
-  sectionLabel: {
-    fontSize: 11, fontWeight: fontWeights.medium as '500', color: '#888780',
-    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.md,
+  safe: { flex: 1, backgroundColor: '#F8F7F3' },
+  scroll: { paddingHorizontal: 20, paddingBottom: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginTop: 12, marginBottom: 20 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 12 },
+  upcomingCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 24,
   },
-  emergencyBar: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: '#DC2626', borderRadius: radius.sm,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, marginBottom: spacing.lg,
+  upcomingImage: { height: 140, justifyContent: 'flex-start', alignItems: 'flex-start', padding: 12 },
+  badge: {
+    backgroundColor: '#0F6E56',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  emergencyText: { fontSize: 12, color: '#FFFFFF', fontWeight: fontWeights.medium as '500' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: spacing.lg },
-  emptyCircle: {
-    width: 96, height: 96, borderRadius: 48, backgroundColor: '#E1F5EE',
-    alignItems: 'center', justifyContent: 'center',
+  badgeText: { fontSize: 12, fontWeight: '600', color: '#FFF' },
+  upcomingBody: { padding: 16 },
+  upcomingName: { fontSize: 18, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  upcomingCity: { fontSize: 13, color: '#888', marginBottom: 6 },
+  upcomingDates: { fontSize: 13, color: '#555', marginBottom: 2 },
+  upcomingGuests: { fontSize: 13, color: '#555', marginBottom: 12 },
+  upcomingActions: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  actionBtn: {
+    backgroundColor: '#F3F3F3',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  emptyTitle: { fontSize: fontSize.h3, fontWeight: fontWeights.medium as '500', color: colors.textPrimary },
+  actionBtnText: { fontSize: 13, fontWeight: '500', color: '#1A1A1A' },
+  statusRow: { flexDirection: 'row', alignItems: 'center' },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#0F6E56', marginRight: 6 },
+  statusText: { fontSize: 13, color: '#0F6E56', fontWeight: '500', flex: 1 },
+  upcomingPrice: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  pastCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  pastImage: {
+    width: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pastInitial: { fontSize: 28, fontWeight: '700', color: 'rgba(0,0,0,0.15)' },
+  pastBody: { flex: 1, padding: 14 },
+  pastName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  pastDates: { fontSize: 12, color: '#888', marginBottom: 4 },
+  pastPrice: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 8 },
+  reviewBtn: {
+    backgroundColor: '#FFF8E1',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+  },
+  reviewBtnText: { fontSize: 12, fontWeight: '600', color: '#F59E0B' },
+  reviewed: { fontSize: 12, color: '#0F6E56', fontWeight: '500' },
+});
+
+const tabStyles = StyleSheet.create({
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 4 },
+  label: { fontSize: 11, color: '#999' },
+  active: { color: '#0F6E56', fontWeight: '600' },
 });
