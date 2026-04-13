@@ -170,7 +170,10 @@ export default function HotelDetailScreen() {
                 <Text style={styles.hostStatus}>Ихэвчлэн 5 мин-д хариулна</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.hostChatBtn}>
+            <TouchableOpacity
+              style={styles.hostChatBtn}
+              onPress={() => router.push(`/chat/${id}`)}
+            >
               <Text style={styles.hostChatBtnText}>💬 Чатлах</Text>
             </TouchableOpacity>
           </View>
@@ -191,7 +194,10 @@ export default function HotelDetailScreen() {
 
       {/* Bottom action bar */}
       <View style={styles.actionBar}>
-        <TouchableOpacity style={styles.actionPrimary}>
+        <TouchableOpacity
+          style={styles.actionPrimary}
+          onPress={() => router.push(`/call/${id}`)}
+        >
           <Text style={styles.actionPrimaryText}>Залгах · cash</Text>
           <Text style={styles.actionPrimaryPrice}>
             ₮{hotel.price_min.toLocaleString()}-
@@ -201,7 +207,10 @@ export default function HotelDetailScreen() {
         <TouchableOpacity style={styles.actionSecondary}>
           <Text style={styles.actionSecondaryText}>Онлайн · QPay</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionChat}>
+        <TouchableOpacity
+          style={styles.actionChat}
+          onPress={() => router.push(`/chat/${id}`)}
+        >
           <Text style={styles.actionChatText}>💬</Text>
         </TouchableOpacity>
       </View>

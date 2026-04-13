@@ -1,1 +1,1 @@
-export { colors, radius, fontWeights, spacing, animation, easing } from './tokens';
+export { colors, radius, fontWeights, fontSize, spacing, animation, easing } from './tokens';

@@ -449,6 +449,10 @@ export default function SearchScreen() {
         activeKey="search"
         onTabPress={(key) => {
           if (key === 'search') return;
+          if (key === 'profile') {
+            router.push('/(guest)/profile');
+            return;
+          }
           toast(`${key} удахгүй...`, { duration: 1500 });
         }}
       />

@@ -17,6 +17,16 @@ export const radius = {
 export const fontWeights = {
   regular: '400',
   medium: '500',
+  semibold: '600',
+} as const;
+
+export const fontSize = {
+  h1: 28,
+  h2: 20,
+  h3: 16,
+  body: 14,
+  caption: 12,
+  tiny: 10,
 } as const;
 
 export const spacing = {
