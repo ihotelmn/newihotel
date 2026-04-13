@@ -8,9 +8,17 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#F8F7F3' },
+          contentStyle: { backgroundColor: '#F1EFE8' },
+          animation: 'slide_from_right',
         }}
-      />
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(guest)" />
+        <Stack.Screen
+          name="hotel/[id]"
+          options={{ animation: 'slide_from_bottom' }}
+        />
+      </Stack>
     </>
   );
 }

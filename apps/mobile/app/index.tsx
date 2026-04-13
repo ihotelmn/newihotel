@@ -10,20 +10,23 @@ export default function WelcomeScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.hero}>
-          <Text style={styles.logo}>iHotel</Text>
-          <Text style={styles.tagline}>
-            Монголын зочид буудлын удирдлагын систем
+          <View style={styles.logoBox}>
+            <Text style={styles.logoText}>i</Text>
+          </View>
+          <Text style={styles.greeting}>Сайн байна уу!</Text>
+          <Text style={styles.subtitle}>
+            Хайж олох, чатлаж асуух, залгаж захиалах — бүгд нэг app-д
           </Text>
         </View>
 
         <View style={styles.actions}>
           <Button
-            title="Буудал хайх"
-            onPress={() => router.push('/search')}
+            title="Эхлэх"
+            onPress={() => router.push('/(guest)/search')}
           />
-          <View style={{ height: 12 }} />
+          <View style={styles.spacer} />
           <Button
-            title="Нэвтрэх"
+            title="🔔 Host-аас мессеж демо"
             variant="outline"
             onPress={() => {}}
           />
@@ -41,26 +44,46 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingHorizontal: 28,
+    paddingTop: 0,
     paddingBottom: 40,
   },
   hero: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  logo: {
-    fontSize: 48,
+  logoBox: {
+    width: 84,
+    height: 84,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  logoText: {
+    fontSize: 42,
     fontWeight: fontWeights.medium as '500',
-    color: colors.primary,
-    marginBottom: 12,
+    color: '#FFFFFF',
   },
-  tagline: {
-    fontSize: 16,
+  greeting: {
+    fontSize: 30,
+    fontWeight: fontWeights.medium as '500',
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
     fontWeight: fontWeights.regular as '400',
     color: colors.textSecondary,
     textAlign: 'center',
+    lineHeight: 21,
   },
   actions: {
     paddingBottom: 20,
+  },
+  spacer: {
+    height: 12,
   },
 });
