@@ -449,11 +449,10 @@ export default function SearchScreen() {
         activeKey="search"
         onTabPress={(key) => {
           if (key === 'search') return;
-          if (key === 'profile') {
-            router.push('/(guest)/profile');
-            return;
-          }
-          toast(`${key} удахгүй...`, { duration: 1500 });
+          if (key === 'profile') router.push('/(guest)/profile');
+          else if (key === 'ai') router.push('/(guest)/ai');
+          else if (key === 'trips') router.push('/(guest)/trips');
+          else if (key === 'saved') router.push('/(guest)/saved');
         }}
       />
     </SafeAreaView>

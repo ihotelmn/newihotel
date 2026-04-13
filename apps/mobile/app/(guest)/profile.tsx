@@ -392,6 +392,9 @@ export default function ProfileScreen() {
         onTabPress={(key) => {
           if (key === 'profile') return;
           if (key === 'search') router.replace('/(guest)/search');
+          else if (key === 'ai') router.push('/(guest)/ai');
+          else if (key === 'trips') router.push('/(guest)/trips');
+          else if (key === 'saved') router.push('/(guest)/saved');
         }}
       />
     </SafeAreaView>

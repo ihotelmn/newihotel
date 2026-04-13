@@ -32,6 +32,14 @@ export default function RootLayout() {
           name="booking/[id]"
           options={{ animation: 'fade' }}
         />
+        <Stack.Screen
+          name="payment/[id]"
+          options={{ animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
+          name="review/[id]"
+          options={{ animation: 'slide_from_bottom' }}
+        />
       </Stack>
       <Toaster position="top-center" />
     </GestureHandlerRootView>
