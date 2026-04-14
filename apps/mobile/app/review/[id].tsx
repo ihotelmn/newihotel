@@ -8,6 +8,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Image as ExpoImage } from 'expo-image';
@@ -47,6 +49,11 @@ export default function ReviewScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
       {/* Header */}
       <View style={s.header}>
         <Pressable
@@ -147,6 +154,7 @@ export default function ReviewScreen() {
           </Text>
         </Pressable>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -171,7 +179,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#1A1A1A' },
+  headerTitle: { fontSize: 17, fontWeight: '500', color: '#1A1A1A' },
   scroll: { padding: 20, gap: 24 },
   hotelPreview: {
     flexDirection: 'row',
@@ -193,10 +201,10 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   hotelInfo: { flex: 1, justifyContent: 'center', gap: 3 },
-  hotelName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  hotelName: { fontSize: 16, fontWeight: '500', color: '#1A1A1A' },
   hotelMeta: { fontSize: 13, color: '#888' },
   section: {},
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '500', color: '#1A1A1A', marginBottom: 10 },
   starsContainer: { alignItems: 'center', paddingVertical: 8 },
   starsRow: {
     flexDirection: 'row',
@@ -241,7 +249,7 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   rewardContent: { flex: 1 },
-  rewardTitle: { fontSize: 15, fontWeight: '600', color: '#04342C' },
+  rewardTitle: { fontSize: 15, fontWeight: '500', color: '#04342C' },
   rewardText: { fontSize: 12, color: '#04342C', marginTop: 2, opacity: 0.8 },
   bottom: {
     paddingHorizontal: 20,
@@ -263,5 +271,5 @@ const s = StyleSheet.create({
     elevation: 4,
   },
   submitBtnDisabled: { opacity: 0.35 },
-  submitBtnText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  submitBtnText: { fontSize: 16, fontWeight: '500', color: '#FFF' },
 });

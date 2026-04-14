@@ -226,8 +226,8 @@ export default function TripsScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
   scroll: { paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', marginTop: 12, marginBottom: 22, letterSpacing: -0.3 },
-  sectionTitle: { fontSize: 17, fontWeight: '600', color: '#1A1A1A', marginBottom: 12 },
+  title: { fontSize: 26, fontWeight: '500', color: '#1A1A1A', marginTop: 12, marginBottom: 22, letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 17, fontWeight: '500', color: '#1A1A1A', marginBottom: 12 },
   upcomingCard: {
     backgroundColor: '#FFF',
     borderRadius: 18,
@@ -255,9 +255,9 @@ const s = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#FFF' },
+  badgeText: { fontSize: 12, fontWeight: '500', color: '#FFF' },
   upcomingBody: { padding: 18 },
-  upcomingName: { fontSize: 18, fontWeight: '600', color: '#1A1A1A', marginBottom: 3 },
+  upcomingName: { fontSize: 18, fontWeight: '500', color: '#1A1A1A', marginBottom: 3 },
   upcomingCity: { fontSize: 13, color: '#888', marginBottom: 8 },
   upcomingDates: { fontSize: 13, color: '#555', marginBottom: 3 },
   upcomingGuests: { fontSize: 13, color: '#555', marginBottom: 14 },
@@ -275,7 +275,7 @@ const s = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center' },
   statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#0F6E56', marginRight: 6 },
   statusText: { fontSize: 13, color: '#0F6E56', fontWeight: '500', flex: 1 },
-  upcomingPrice: { fontSize: 17, fontWeight: '700', color: '#1A1A1A' },
+  upcomingPrice: { fontSize: 17, fontWeight: '500', color: '#1A1A1A' },
   pastCard: {
     backgroundColor: '#FFF',
     borderRadius: 16,
@@ -290,9 +290,9 @@ const s = StyleSheet.create({
   },
   pastImage: { width: 100, height: '100%', minHeight: 110 },
   pastBody: { flex: 1, padding: 14, justifyContent: 'center' },
-  pastName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginBottom: 3 },
+  pastName: { fontSize: 15, fontWeight: '500', color: '#1A1A1A', marginBottom: 3 },
   pastDates: { fontSize: 12, color: '#888', marginBottom: 4 },
-  pastPrice: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 8 },
+  pastPrice: { fontSize: 14, fontWeight: '500', color: '#1A1A1A', marginBottom: 8 },
   reviewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -303,7 +303,7 @@ const s = StyleSheet.create({
     paddingVertical: 7,
     alignSelf: 'flex-start',
   },
-  reviewBtnText: { fontSize: 12, fontWeight: '600', color: '#F59E0B' },
+  reviewBtnText: { fontSize: 12, fontWeight: '500', color: '#F59E0B' },
   reviewedRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   reviewed: { fontSize: 12, color: '#0F6E56', fontWeight: '500' },
   emergencyBar: {
@@ -318,7 +318,7 @@ const s = StyleSheet.create({
     borderColor: '#FDDEDE',
   },
   emergencyContent: { flex: 1 },
-  emergencyTitle: { fontSize: 14, fontWeight: '600', color: '#E24B4A', marginBottom: 2 },
+  emergencyTitle: { fontSize: 14, fontWeight: '500', color: '#E24B4A', marginBottom: 2 },
   emergencyText: { fontSize: 12, color: '#888' },
 });
 
@@ -333,5 +333,5 @@ const tabS = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   label: { fontSize: 10, color: '#999', fontWeight: '500' },
-  active: { color: '#0F6E56', fontWeight: '600' },
+  active: { color: '#0F6E56', fontWeight: '500' },
 });

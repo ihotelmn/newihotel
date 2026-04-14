@@ -29,6 +29,7 @@ import {
   FileText,
   ChevronRight,
   LogOut,
+  Building2,
 } from 'lucide-react-native';
 
 const QUICK_ACTIONS = [
@@ -171,6 +172,18 @@ export default function ProfileScreen() {
           })}
         </View>
 
+        {/* Hotel Owner Mode */}
+        <Pressable
+          style={({ pressed }) => [s.hotelModeBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            router.replace('/(hotel)/leads' as any);
+          }}
+        >
+          <Building2 size={20} color="#FFF" strokeWidth={2} />
+          <Text style={s.hotelModeText}>Буудлын эзэн горим</Text>
+        </Pressable>
+
         {/* Logout */}
         <Pressable
           style={({ pressed }) => [s.logoutBtn, pressed && { backgroundColor: '#FFF5F5' }]}
@@ -196,7 +209,7 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
   scroll: { paddingHorizontal: 20 },
-  headerTitle: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', marginTop: 12, marginBottom: 20, letterSpacing: -0.3 },
+  headerTitle: { fontSize: 26, fontWeight: '500', color: '#1A1A1A', marginTop: 12, marginBottom: 20, letterSpacing: -0.3 },
   avatarSection: { alignItems: 'center', marginBottom: 24 },
   avatar: {
     width: 80,
@@ -212,8 +225,8 @@ const s = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  avatarText: { fontSize: 28, fontWeight: '700', color: '#FFF' },
-  name: { fontSize: 20, fontWeight: '600', color: '#1A1A1A' },
+  avatarText: { fontSize: 28, fontWeight: '500', color: '#FFF' },
+  name: { fontSize: 20, fontWeight: '500', color: '#1A1A1A' },
   email: { fontSize: 13, color: '#888', marginTop: 3 },
   loyaltyCard: {
     borderRadius: 18,
@@ -233,8 +246,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  loyaltyLevel: { fontSize: 12, color: '#FFF', fontWeight: '600' },
-  loyaltyPoints: { fontSize: 34, fontWeight: '700', color: '#FFF', marginBottom: 14 },
+  loyaltyLevel: { fontSize: 12, color: '#FFF', fontWeight: '500' },
+  loyaltyPoints: { fontSize: 34, fontWeight: '500', color: '#FFF', marginBottom: 14 },
   progressBg: {
     height: 6,
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -301,6 +314,22 @@ const s = StyleSheet.create({
   menuTextWrap: { flex: 1 },
   menuLabel: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   menuSub: { fontSize: 12, color: '#999', marginTop: 2 },
+  hotelModeBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#0F6E56',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 12,
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  hotelModeText: { fontSize: 15, fontWeight: '500', color: '#FFF' },
   logoutBtn: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
@@ -326,5 +355,5 @@ const tabS = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   label: { fontSize: 10, color: '#999', fontWeight: '500' },
-  active: { color: '#0F6E56', fontWeight: '600' },
+  active: { color: '#0F6E56', fontWeight: '500' },
 });

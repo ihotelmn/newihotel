@@ -195,7 +195,7 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F8F7F3' },
   header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
   greeting: { fontSize: 14, color: '#888', marginBottom: 2 },
-  title: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', marginBottom: 14, letterSpacing: -0.3 },
+  title: { fontSize: 26, fontWeight: '500', color: '#1A1A1A', marginBottom: 14, letterSpacing: -0.3 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,7 +225,7 @@ const s = StyleSheet.create({
   },
   catPillActive: { backgroundColor: '#0F6E56', borderColor: '#0F6E56' },
   catText: { fontSize: 13, fontWeight: '500', color: '#555' },
-  catTextActive: { color: '#FFF', fontWeight: '600' },
+  catTextActive: { color: '#FFF', fontWeight: '500' },
   list: { paddingHorizontal: 20, paddingBottom: 16 },
   card: {
     backgroundColor: '#FFF',
@@ -243,17 +243,17 @@ const s = StyleSheet.create({
     width: '100%',
   },
   cardBody: { padding: 14 },
-  cardName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 3 },
+  cardName: { fontSize: 16, fontWeight: '500', color: '#1A1A1A', marginBottom: 3 },
   cardCity: { fontSize: 13, color: '#888', marginBottom: 8 },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardRating: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
+  cardRating: { fontSize: 13, fontWeight: '500', color: '#F59E0B' },
   cardReviews: { fontSize: 12, color: '#999' },
-  cardPrice: { fontSize: 17, fontWeight: '700', color: '#0F6E56' },
+  cardPrice: { fontSize: 17, fontWeight: '500', color: '#0F6E56' },
   cardNight: { fontSize: 12, fontWeight: '400', color: '#888' },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 4 },
+  emptyText: { fontSize: 16, fontWeight: '500', color: '#1A1A1A', marginBottom: 4 },
   emptySub: { fontSize: 14, color: '#888' },
 });
 
@@ -268,5 +268,5 @@ const tabS = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   label: { fontSize: 10, color: '#999', fontWeight: '500' },
-  active: { color: '#0F6E56', fontWeight: '600' },
+  active: { color: '#0F6E56', fontWeight: '500' },
 });

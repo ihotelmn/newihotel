@@ -156,7 +156,7 @@ const s = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#1A1A1A',
     marginBottom: 8,
     letterSpacing: -0.3,
@@ -177,7 +177,7 @@ const s = StyleSheet.create({
   },
   loyaltyText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFF',
   },
   card: {
@@ -203,7 +203,7 @@ const s = StyleSheet.create({
   summaryRowLast: { borderBottomWidth: 0, paddingTop: 14 },
   summaryLabel: { fontSize: 13, color: '#888' },
   summaryValue: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', flexShrink: 1, textAlign: 'right' },
-  summaryValueBold: { fontSize: 18, fontWeight: '700', color: '#0F6E56' },
+  summaryValueBold: { fontSize: 18, fontWeight: '500', color: '#0F6E56' },
   paymentHint: {
     backgroundColor: '#FFF',
     borderRadius: 14,
@@ -232,7 +232,7 @@ const s = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  primaryBtnText: { fontSize: 16, fontWeight: '500', color: '#FFF' },
   secondaryBtn: {
     width: '100%',
     flexDirection: 'row',

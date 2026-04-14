@@ -165,7 +165,7 @@ const s = StyleSheet.create({
     gap: 8,
   },
   callingTo: { fontSize: 14, color: 'rgba(255,255,255,0.5)', fontWeight: '500' },
-  callingStatus: { fontSize: 22, fontWeight: '600', color: '#FFF' },
+  callingStatus: { fontSize: 22, fontWeight: '500', color: '#FFF' },
   avatarContainer: {
     width: 140,
     height: 140,
@@ -191,7 +191,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 36, fontWeight: '600', color: '#FFF' },
+  avatarText: { fontSize: 36, fontWeight: '500', color: '#FFF' },
   infoCard: {
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderRadius: 18,

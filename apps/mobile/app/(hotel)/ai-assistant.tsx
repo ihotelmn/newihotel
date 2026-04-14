@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Sparkles, Send, Hotel, Wallet, Users, Mountain } from 'lucide-react-native';
+import { Sparkles, Send, BedDouble, DollarSign, Megaphone, Inbox, Users, Settings, ArrowLeft } from 'lucide-react-native';
 
 type Message = {
   id: string;
@@ -22,32 +22,26 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-  { icon: Hotel, text: 'Тэрэлж орчмын хотелууд', color: '#0F6E56' },
-  { icon: Wallet, text: 'Хямд зочид буудал хайх', color: '#F59E0B' },
-  { icon: Users, text: 'Гэр бүлд тохиромжтой газар', color: '#4A90D9' },
-  { icon: Mountain, text: 'Байгалийн үзэсгэлэнт газрууд', color: '#8B5CF6' },
+  { icon: BedDouble, text: 'Маргааш ямар өрөө сул?', color: '#0F6E56' },
+  { icon: DollarSign, text: 'Энэ сарын орлого?', color: '#F59E0B' },
+  { icon: Megaphone, text: 'Шинэ campaign бич', color: '#4A90D9' },
+  { icon: Users, text: 'VIP зочдын жагсаалт', color: '#8B5CF6' },
 ];
 
 const AI_REPLIES: Record<string, string> = {
-  default:
-    'Би танд туслахад бэлэн! Та аялалын газар, хотел, үнэ гэх мэт асуулт асуугаарай. Жишээ нь: "Тэрэлж орчимд хотел байна уу?" гэж асууж болно.',
-  hotel:
-    'Тэрэлж орчимд хэд хэдэн гайхалтай хотел байна:\n\n1. Тэрэлж Лодж — 180,000₮/шөнө, ★4.6\n2. Горхи Тэрэлж Рисорт — 350,000₮/шөнө, ★4.8\n\nДэлгэрэнгүй үзэх үү?',
-  cheap:
-    'Хямд сонголтуудаас:\n\n• Номад Гэстхаус — 55,000₮/шөнө\n• Алтай Гэр Кэмп — 85,000₮/шөнө\n• Говийн Гэр Кэмп — 95,000₮/шөнө\n\nАль нь таалагдаж байна?',
-  family:
-    'Гэр бүлд "Хустайн Рисорт" маш тохиромжтой — өргөн өрөөтэй, хүүхдийн тоглоомын талбайтай, морь унах боломжтой. ★4.7 үнэлгээтэй, 320,000₮/шөнө.',
-  nature:
-    'Байгалийн үзэсгэлэнт газрууд:\n\n🏔 Хөвсгөл Лодж — ★4.9, 210,000₮\n🌿 Тэрэлж Лодж — ★4.6, 180,000₮\n🐪 Говийн Гэр Кэмп — ★4.5, 95,000₮\n\nЯмар төрлийн байгаль таалагдах вэ?',
+  default: 'Би танд зочид буудлын менежментийн асуудлаар тусалж чадна. Өрөөний мэдээлэл, орлого, захиалга, маркетинг зэргийн талаар асуугаарай.',
+  room: 'Маргааш (04/14) нийт 14 өрөөнөөс:\n\n- 8 Standard сул (₮120,000)\n- 2 Deluxe сул (₮220,000)\n- 1 Suite сул (₮380,000)\n\nНийт 11 өрөө захиалгад бэлэн.',
+  revenue: 'Энэ сарын орлого:\n\n- Нийт: ₮4,200,000\n- Өрөө: ₮3,600,000\n- Нэмэлт: ₮600,000\n- Өнгөрсөн сартай харьцуулахад +12%\n\nFill rate: 72%',
+  campaign: 'Шинэ campaign санаа:\n\n"Зуны эрт захиалга -20%"\n- Суваг: SMS + Push\n- Зорилтот: Өмнө ирж байсан зочид\n- Хугацаа: 7 хоног\n\nЭнэ campaign-ыг үүсгэх үү?',
+  vip: 'VIP зочид (5+):\n\n1. Мөнхбат Э. — 15 удаа, ₮5.8M\n2. Батбаяр Д. — 12 удаа, ₮3.4M\n3. Энхбат Т. — 8 удаа, ₮2.1M\n4. Болд О. — 6 удаа, ₮1.68M\n5. Ганбаатар Ж. — 5 удаа, ₮1.25M',
 };
 
 function getAIReply(text: string): string {
   const lower = text.toLowerCase();
-  if (lower.includes('тэрэлж') || lower.includes('хотел')) return AI_REPLIES.hotel;
-  if (lower.includes('хямд') || lower.includes('cheap')) return AI_REPLIES.cheap;
-  if (lower.includes('гэр бүл') || lower.includes('family') || lower.includes('тохиромжтой'))
-    return AI_REPLIES.family;
-  if (lower.includes('байгал') || lower.includes('үзэсгэлэнт')) return AI_REPLIES.nature;
+  if (lower.includes('өрөө') || lower.includes('сул') || lower.includes('маргааш')) return AI_REPLIES.room;
+  if (lower.includes('орлого') || lower.includes('сар')) return AI_REPLIES.revenue;
+  if (lower.includes('campaign') || lower.includes('маркетинг') || lower.includes('бич')) return AI_REPLIES.campaign;
+  if (lower.includes('vip') || lower.includes('жагсаалт')) return AI_REPLIES.vip;
   return AI_REPLIES.default;
 }
 
@@ -72,7 +66,7 @@ function TypingIndicator() {
     a2.start();
     a3.start();
     return () => { a1.stop(); a2.stop(); a3.stop(); };
-  }, []);
+  }, [dot1, dot2, dot3]);
 
   return (
     <View style={bs.typingRow}>
@@ -83,7 +77,50 @@ function TypingIndicator() {
   );
 }
 
-export default function AIScreen() {
+const HOTEL_TAB_ICONS: Record<string, typeof Inbox> = {
+  leads: Inbox,
+  rooms: BedDouble,
+  guests: Users,
+  marketing: Megaphone,
+  settings: Settings,
+};
+
+const HOTEL_TABS_DATA = [
+  { key: 'leads', label: 'Лийд', route: '/(hotel)/leads' },
+  { key: 'rooms', label: 'Өрөө', route: '/(hotel)/rooms' },
+  { key: 'guests', label: 'Зочин', route: '/(hotel)/guests' },
+  { key: 'marketing', label: 'Маркетинг', route: '/(hotel)/marketing' },
+  { key: 'settings', label: 'Тохиргоо', route: '/(hotel)/settings' },
+];
+
+function HotelTabBar({ active }: { active: string }) {
+  const router = useRouter();
+  return (
+    <View style={tabStyles.bar}>
+      {HOTEL_TABS_DATA.map((t) => {
+        const Icon = HOTEL_TAB_ICONS[t.key] ?? Inbox;
+        const isActive = t.key === active;
+        return (
+          <Pressable
+            key={t.key}
+            style={tabStyles.tab}
+            onPress={() => {
+              if (!isActive) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.replace(t.route as any);
+              }
+            }}
+          >
+            <Icon size={22} color={isActive ? '#0F6E56' : '#999'} strokeWidth={isActive ? 2.2 : 1.8} />
+            <Text style={[tabStyles.label, isActive && tabStyles.active]}>{t.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+export default function HotelAIAssistantScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -96,24 +133,16 @@ export default function AIScreen() {
     (text: string) => {
       if (!text.trim()) return;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const userMsg: Message = {
-        id: Date.now().toString(),
-        text: text.trim(),
-        from: 'user',
-      };
+      const userMsg: Message = { id: Date.now().toString(), text: text.trim(), from: 'user' };
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
       setTyping(true);
 
       setTimeout(() => {
-        const aiMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          text: getAIReply(text),
-          from: 'ai',
-        };
+        const aiMsg: Message = { id: (Date.now() + 1).toString(), text: getAIReply(text), from: 'ai' };
         setMessages((prev) => [...prev, aiMsg]);
         setTyping(false);
-      }, 1500);
+      }, 1200);
     },
     [],
   );
@@ -133,18 +162,25 @@ export default function AIScreen() {
       >
         {/* Header */}
         <View style={s.header}>
+          <Pressable
+            style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={20} color="#1A1A1A" strokeWidth={2.2} />
+          </Pressable>
           <View style={s.headerLeft}>
             <View style={s.aiHeaderIcon}>
               <Sparkles size={18} color="#0F6E56" strokeWidth={2} />
             </View>
             <View>
-              <Text style={s.headerTitle}>AI Зөвлөх</Text>
+              <Text style={s.headerTitle}>Hotel AI</Text>
               <View style={s.onlineRow}>
                 <View style={s.onlineDot} />
                 <Text style={s.headerSub}>Онлайн</Text>
               </View>
             </View>
           </View>
+          <View style={{ width: 38 }} />
         </View>
 
         <ScrollView
@@ -159,10 +195,8 @@ export default function AIScreen() {
               <View style={s.aiAvatar}>
                 <Sparkles size={28} color="#0F6E56" strokeWidth={2} />
               </View>
-              <Text style={s.welcomeTitle}>{'Сайн байна уу! ✨'}</Text>
-              <Text style={s.welcomeSub}>
-                Би таны аялалын AI зөвлөх. Юу асуухыг хүсч байна?
-              </Text>
+              <Text style={s.welcomeTitle}>Hotel AI Туслах</Text>
+              <Text style={s.welcomeSub}>Зочид буудлын менежментийн бүх асуулт асуугаарай</Text>
               <View style={s.sugGrid}>
                 {SUGGESTIONS.map((sug, i) => {
                   const Icon = sug.icon;
@@ -184,27 +218,14 @@ export default function AIScreen() {
           )}
 
           {messages.map((msg) => (
-            <View
-              key={msg.id}
-              style={[bs.wrap, msg.from === 'user' ? bs.userWrap : bs.aiWrap]}
-            >
+            <View key={msg.id} style={[bs.wrap, msg.from === 'user' ? bs.userWrap : bs.aiWrap]}>
               {msg.from === 'ai' && (
                 <View style={bs.aiMiniAvatar}>
                   <Sparkles size={12} color="#0F6E56" strokeWidth={2} />
                 </View>
               )}
-              <View
-                style={[
-                  bs.bubble,
-                  msg.from === 'user' ? bs.bubbleUser : bs.bubbleAI,
-                ]}
-              >
-                <Text
-                  style={[
-                    bs.bubbleText,
-                    msg.from === 'user' ? bs.textUser : bs.textAI,
-                  ]}
-                >
+              <View style={[bs.bubble, msg.from === 'user' ? bs.bubbleUser : bs.bubbleAI]}>
+                <Text style={[bs.bubbleText, msg.from === 'user' ? bs.textUser : bs.textAI]}>
                   {msg.text}
                 </Text>
               </View>
@@ -227,7 +248,7 @@ export default function AIScreen() {
         <View style={s.inputBar}>
           <TextInput
             style={s.textInput}
-            placeholder="Мессеж бичих..."
+            placeholder="Асуулт бичих..."
             placeholderTextColor="#999"
             value={input}
             onChangeText={setInput}
@@ -242,6 +263,8 @@ export default function AIScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <HotelTabBar active="" />
     </SafeAreaView>
   );
 }
@@ -254,25 +277,14 @@ const bs = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E8F5F1',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
   },
-  bubble: {
-    maxWidth: '78%',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  bubbleUser: {
-    backgroundColor: '#1A1A1A',
-    borderBottomRightRadius: 6,
-  },
-  bubbleAI: {
-    backgroundColor: '#E3F0FF',
-    borderBottomLeftRadius: 6,
-  },
+  bubble: { maxWidth: '78%', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12 },
+  bubbleUser: { backgroundColor: '#1A1A1A', borderBottomRightRadius: 6 },
+  bubbleAI: { backgroundColor: '#E3F0FF', borderBottomLeftRadius: 6 },
   bubbleText: { fontSize: 15, lineHeight: 22 },
   textUser: { color: '#FFF' },
   textAI: { color: '#1A1A1A' },
@@ -287,18 +299,26 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 14,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EDEDED',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#F3F3F3',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   aiHeaderIcon: {
     width: 40,
     height: 40,
     borderRadius: 14,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E8F5F1',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -312,15 +332,10 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 22,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E8F5F1',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#0F6E56',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
   },
   welcomeTitle: { fontSize: 22, fontWeight: '500', color: '#1A1A1A', marginBottom: 6 },
   welcomeSub: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 28, paddingHorizontal: 20, lineHeight: 21 },
@@ -332,11 +347,6 @@ const s = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: '#EDEDED',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
   },
   sugIconWrap: {
     width: 36,
@@ -352,7 +362,6 @@ const s = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    paddingBottom: 28,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#EDEDED',
@@ -375,11 +384,20 @@ const s = StyleSheet.create({
     backgroundColor: '#0F6E56',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0F6E56',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
   },
   sendBtnDisabled: { opacity: 0.35 },
+});
+
+const tabStyles = StyleSheet.create({
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EDEDED',
+    paddingBottom: 28,
+    paddingTop: 10,
+  },
+  tab: { flex: 1, alignItems: 'center', gap: 3 },
+  label: { fontSize: 10, color: '#999', fontWeight: '500' },
+  active: { color: '#0F6E56', fontWeight: '500' },
 });

@@ -163,7 +163,7 @@ const s = StyleSheet.create({
     paddingTop: 12,
     marginBottom: 16,
   },
-  title: { fontSize: 26, fontWeight: '700', color: '#1A1A1A', letterSpacing: -0.3 },
+  title: { fontSize: 26, fontWeight: '500', color: '#1A1A1A', letterSpacing: -0.3 },
   count: { fontSize: 13, color: '#888' },
   list: { paddingHorizontal: 14, paddingBottom: 16 },
   row: { justifyContent: 'space-between', marginBottom: 14 },
@@ -192,12 +192,12 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   cardBody: { padding: 12 },
-  cardName: { fontSize: 13, fontWeight: '600', color: '#1A1A1A', marginBottom: 3 },
+  cardName: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', marginBottom: 3 },
   cardCity: { fontSize: 11, color: '#888', marginBottom: 8 },
   cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  cardRating: { fontSize: 12, fontWeight: '600', color: '#F59E0B' },
-  cardPrice: { fontSize: 12, fontWeight: '700', color: '#0F6E56' },
+  cardRating: { fontSize: 12, fontWeight: '500', color: '#F59E0B' },
+  cardPrice: { fontSize: 12, fontWeight: '500', color: '#0F6E56' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyIconWrap: {
     width: 80,
@@ -208,7 +208,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A', marginBottom: 6 },
+  emptyTitle: { fontSize: 18, fontWeight: '500', color: '#1A1A1A', marginBottom: 6 },
   emptySub: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 24 },
   emptyBtn: {
     backgroundColor: '#0F6E56',
@@ -221,7 +221,7 @@ const s = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  emptyBtnText: { fontSize: 15, fontWeight: '600', color: '#FFF' },
+  emptyBtnText: { fontSize: 15, fontWeight: '500', color: '#FFF' },
 });
 
 const tabS = StyleSheet.create({
@@ -235,5 +235,5 @@ const tabS = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   label: { fontSize: 10, color: '#999', fontWeight: '500' },
-  active: { color: '#0F6E56', fontWeight: '600' },
+  active: { color: '#0F6E56', fontWeight: '500' },
 });

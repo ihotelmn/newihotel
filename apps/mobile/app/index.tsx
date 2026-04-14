@@ -106,6 +106,18 @@ export default function WelcomeScreen() {
       <Animated.Text style={[s.footer, { opacity: footerOpacity }]}>
         {'Powered by AI  ·  Made in Mongolia \u{1F1F2}\u{1F1F3}'}
       </Animated.Text>
+
+      <Animated.View style={{ opacity: footerOpacity }}>
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/(hotel)/leads' as any);
+          }}
+          style={({ pressed }) => [s.hotelLink, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={s.hotelLinkText}>{'Буудлын эзэн \u2192'}</Text>
+        </Pressable>
+      </Animated.View>
     </LinearGradient>
   );
 }
@@ -143,7 +155,7 @@ const s = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1A1A',
     marginBottom: 10,
     letterSpacing: -0.5,
@@ -176,7 +188,7 @@ const s = StyleSheet.create({
   },
   primaryText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFF',
     letterSpacing: 0.3,
   },
@@ -200,7 +212,16 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: '#5F5E5A',
     textAlign: 'center',
-    paddingBottom: 44,
+    paddingBottom: 12,
     opacity: 0.45,
+  },
+  hotelLink: {
+    alignItems: 'center',
+    paddingBottom: 44,
+  },
+  hotelLinkText: {
+    fontSize: 13,
+    color: '#0F6E56',
+    fontWeight: '500',
   },
 });

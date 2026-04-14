@@ -247,7 +247,7 @@ const ms = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 2,
   },
-  hostMiniAvatarText: { fontSize: 10, fontWeight: '600', color: '#FFF' },
+  hostMiniAvatarText: { fontSize: 10, fontWeight: '500', color: '#FFF' },
   bubble: { maxWidth: '78%', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 11 },
   hostBubble: { backgroundColor: '#E3F0FF', borderBottomLeftRadius: 6 },
   userBubble: { backgroundColor: '#1A1A1A', borderBottomRightRadius: 6 },
@@ -287,7 +287,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerAvatarText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
+  headerAvatarText: { fontSize: 14, fontWeight: '500', color: '#FFF' },
   onlineDot: {
     position: 'absolute',
     bottom: 0,
@@ -300,7 +300,7 @@ const s = StyleSheet.create({
     borderColor: '#FFF',
   },
   headerInfo: { flex: 1 },
-  headerName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
+  headerName: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   headerStatus: { fontSize: 11, color: '#22C55E', fontWeight: '500', marginTop: 1 },
   phoneBtn: {
     width: 38,

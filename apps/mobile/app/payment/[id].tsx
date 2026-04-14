@@ -143,7 +143,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#1A1A1A' },
+  headerTitle: { fontSize: 17, fontWeight: '500', color: '#1A1A1A' },
   scroll: { padding: 20, gap: 12 },
   summaryCard: {
     backgroundColor: '#FFF',
@@ -157,14 +157,14 @@ const s = StyleSheet.create({
     shadowRadius: 6,
     elevation: 1,
   },
-  summaryHotel: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 14 },
+  summaryHotel: { fontSize: 16, fontWeight: '500', color: '#1A1A1A', marginBottom: 14 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
   summaryLabel: { fontSize: 14, color: '#888' },
   summaryValue: { fontSize: 14, color: '#1A1A1A' },
-  summaryValueFree: { fontSize: 12, color: '#0F6E56', fontWeight: '600' },
+  summaryValueFree: { fontSize: 12, color: '#0F6E56', fontWeight: '500' },
   divider: { height: 1, backgroundColor: '#F3F3F3', marginVertical: 10 },
-  summaryTotal: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  summaryTotalValue: { fontSize: 18, fontWeight: '700', color: '#0F6E56' },
+  summaryTotal: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
+  summaryTotalValue: { fontSize: 18, fontWeight: '500', color: '#0F6E56' },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -213,7 +213,7 @@ const s = StyleSheet.create({
     marginTop: 4,
   },
   trustContent: { flex: 1 },
-  trustTitle: { fontSize: 14, fontWeight: '600', color: '#04342C', marginBottom: 3 },
+  trustTitle: { fontSize: 14, fontWeight: '500', color: '#04342C', marginBottom: 3 },
   trustText: { fontSize: 12, color: '#04342C', lineHeight: 18, opacity: 0.8 },
   bottom: {
     paddingHorizontal: 20,
@@ -234,5 +234,5 @@ const s = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  continueBtnText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  continueBtnText: { fontSize: 16, fontWeight: '500', color: '#FFF' },
 });

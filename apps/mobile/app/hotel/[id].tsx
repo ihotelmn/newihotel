@@ -268,11 +268,11 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   content: { padding: 20, marginTop: -12, borderTopLeftRadius: 16, borderTopRightRadius: 16, backgroundColor: '#F8F7F3' },
-  hotelName: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 6, letterSpacing: -0.3 },
+  hotelName: { fontSize: 24, fontWeight: '500', color: '#1A1A1A', marginBottom: 6, letterSpacing: -0.3 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 18 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   metaCity: { fontSize: 14, color: '#888' },
-  metaRating: { fontSize: 14, fontWeight: '600', color: '#F59E0B' },
+  metaRating: { fontSize: 14, fontWeight: '500', color: '#F59E0B' },
   metaReviews: { fontSize: 13, color: '#999' },
   trustCard: {
     flexDirection: 'row',
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
     gap: 12,
   },
   trustContent: { flex: 1 },
-  trustTitle: { fontSize: 14, fontWeight: '600', color: '#04342C', marginBottom: 2 },
+  trustTitle: { fontSize: 14, fontWeight: '500', color: '#04342C', marginBottom: 2 },
   trustText: { fontSize: 12, color: '#04342C', lineHeight: 18, opacity: 0.8 },
   priceLockCard: {
     flexDirection: 'row',
@@ -301,7 +301,7 @@ const s = StyleSheet.create({
     elevation: 1,
   },
   priceLockContent: { flex: 1 },
-  priceLockTitle: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  priceLockTitle: { fontSize: 14, fontWeight: '500', color: '#1A1A1A', marginBottom: 2 },
   priceLockText: { fontSize: 12, color: '#888' },
   amenities: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 },
   amenityPill: {
@@ -323,7 +323,7 @@ const s = StyleSheet.create({
     marginBottom: 18,
   },
   aiLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  aiLabel: { fontSize: 12, fontWeight: '600', color: '#0F6E56', textTransform: 'uppercase', letterSpacing: 0.5 },
+  aiLabel: { fontSize: 12, fontWeight: '500', color: '#0F6E56', textTransform: 'uppercase', letterSpacing: 0.5 },
   aiText: { fontSize: 14, color: '#04342C', lineHeight: 22 },
   hostCard: {
     backgroundColor: '#FFF',
@@ -342,9 +342,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hostAvatarText: { fontSize: 15, fontWeight: '600', color: '#04342C' },
+  hostAvatarText: { fontSize: 15, fontWeight: '500', color: '#04342C' },
   hostInfo: { flex: 1 },
-  hostName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
+  hostName: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   hostStatus: { fontSize: 12, color: '#0F6E56', marginTop: 1 },
   hostChatBtn: {
     flexDirection: 'row',
@@ -356,7 +356,7 @@ const s = StyleSheet.create({
     paddingVertical: 12,
   },
   hostChatBtnText: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
-  sectionLabel: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 12 },
+  sectionLabel: { fontSize: 16, fontWeight: '500', color: '#1A1A1A', marginBottom: 12 },
   reviewCard: {
     backgroundColor: '#FFF',
     borderRadius: 14,
@@ -369,7 +369,7 @@ const s = StyleSheet.create({
     elevation: 1,
   },
   reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  reviewAuthor: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
+  reviewAuthor: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
   reviewStars: { flexDirection: 'row', gap: 2 },
   reviewText: { fontSize: 13, color: '#555', lineHeight: 20 },
   actionBar: {
@@ -401,7 +401,7 @@ const s = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  actionPrimaryText: { fontSize: 15, fontWeight: '600', color: '#FFF' },
+  actionPrimaryText: { fontSize: 15, fontWeight: '500', color: '#FFF' },
   actionPrimaryPrice: { fontSize: 11, color: 'rgba(255,255,255,0.75)', marginTop: 1 },
   actionSecondary: {
     flex: 0.7,
